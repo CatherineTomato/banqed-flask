@@ -1,0 +1,58 @@
+:root {
+  --paper: #f7f6f2;
+  --ink: #1a1a1a;
+  --ink-55: rgba(26, 26, 26, 0.55);
+  --border: #d8d3c8;
+  --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+nav {
+  display: flex;
+  gap: 24px;
+  padding: 20px 32px;
+  border-bottom: 2px solid var(--ink);
+}
+
+nav a {
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+main {
+  padding: 32px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+th, td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+
+th {
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--ink-55);
+}
