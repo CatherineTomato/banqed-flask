@@ -21,11 +21,16 @@ def import_wardrobe():
     ws = wb["Wardrobe"]
     headers = [str(cell.value).strip() if cell.value else "" for cell in ws[1]]
 
-    count = 0
+    added = 0
+    skipped = 0
     for row in ws.iter_rows(min_row=2, values_only=True):
         row_dict = dict(zip(headers, row))
         item_name = clean(row_dict.get("Item Name"))
         if not item_name:
+            continue
+        existing = Item.query.filter_by(item_name=item_name).first()
+        if existing:
+            skipped += 1
             continue
 
         item = Item(
@@ -51,7 +56,7 @@ def import_wardrobe():
             ownership_status=clean(row_dict.get("Ownership Status")) or "Owned",
         )
         db.session.add(item)
-        count += 1
+        added += 1
 
     print(f"Imported {count} wardrobe items.")
 
