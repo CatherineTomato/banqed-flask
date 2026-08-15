@@ -58,7 +58,7 @@ def import_wardrobe():
         db.session.add(item)
         added += 1
 
-    print(f"Imported {count} wardrobe items.")
+    print(f"Wardrobe: added {added}, skipped {skipped} already-existing items.")
 
 
 def import_sales():
@@ -66,11 +66,16 @@ def import_sales():
     ws = wb["Sales"]
     headers = [str(cell.value).strip() if cell.value else "" for cell in ws[1]]
 
-    count = 0
+    added = 0
+    skipped = 0
     for row in ws.iter_rows(min_row=2, values_only=True):
         row_dict = dict(zip(headers, row))
         item_name = clean(row_dict.get("Item name"))
         if not item_name:
+            continue
+        existing = SaleListing.query.filter_by(item_name=item_name).first()
+        if existing:
+            skipped += 1
             continue
 
         listing = SaleListing(
@@ -85,9 +90,9 @@ def import_sales():
             sold_for=clean_number(row_dict.get("Sold for")),
         )
         db.session.add(listing)
-        count += 1
+        added += 1
 
-    print(f"Imported {count} sales rows.")
+    print(f"Sales: added {added}, skipped {skipped} already-existing listings.")
 
 
 if __name__ == "__main__":
