@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>The Banq</h1>
+<table>
+  <thead>
+    <tr>
+      <th>Item</th>
+      <th>Category</th>
+      <th>Colour</th>
+      <th>Wear Frequency</th>
+      <th>Est. Value</th>
+      <th>Resale</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in items %}
+    <tr>
+      <td>{{ item.item_name }}</td>
+      <td>{{ item.category }}</td>
+      <td>{{ item.colour }}</td>
+      <td>{{ item.wear_frequency }}</td>
+      <td>{{ item.estimated_value }}</td>
+      <td>{{ item.resale_willingness }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

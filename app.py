@@ -1,5 +1,5 @@
 from flask import Flask, render_template
-from models import db
+from models import db, Item
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///banqed.db"
@@ -11,7 +11,14 @@ db.init_app(app)
 def home():
     return render_template("index.html")
 
+
+@app.route("/wardrobe")
+def wardrobe():
+    items = Item.query.all()
+    return render_template("wardrobe.html", items=items)
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
     app.run(debug=True)
+
