@@ -1,17 +1,20 @@
 document.addEventListener("DOMContentLoaded", function () {
-  const searchInput = document.getElementById("wardrobeSearch");
-  const table = document.getElementById("wardrobeTable");
+  const searchInputs = document.querySelectorAll(".table-search");
 
-  if (!searchInput || !table) return;
+  searchInputs.forEach(function (input) {
+    const tableId = input.getAttribute("data-table");
+    const table = document.getElementById(tableId);
+    if (!table) return;
 
-  const rows = table.querySelectorAll("tbody tr");
+    const rows = table.querySelectorAll("tbody tr");
 
-  searchInput.addEventListener("input", function () {
-    const query = searchInput.value.toLowerCase();
+    input.addEventListener("input", function () {
+      const query = input.value.toLowerCase();
 
-    rows.forEach(function (row) {
-      const text = row.textContent.toLowerCase();
-      row.style.display = text.includes(query) ? "" : "none";
+      rows.forEach(function (row) {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(query) ? "" : "none";
+      });
     });
   });
 });

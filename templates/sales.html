@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Sales</h1>
+
+<input type="text" class="table-search" data-table="salesTable" placeholder="Search sales...">
+
+<table id="salesTable">
+  <thead>
+    <tr>
+      <th>Item</th>
+      <th>Status</th>
+      <th>Category</th>
+      <th>Item Type</th>
+      <th>Listing Price</th>
+      <th>Sold For</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for listing in listings %}
+    <tr>
+      <td>{{ listing.item_name }}</td>
+      <td>{{ listing.status }}</td>
+      <td>{{ listing.category }}</td>
+      <td>{{ listing.item_type }}</td>
+      <td>{{ listing.listing_price }}</td>
+      <td>{{ listing.sold_for }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
