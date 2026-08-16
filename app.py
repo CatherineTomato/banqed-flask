@@ -21,6 +21,10 @@ def sales():
     listings = SaleListing.query.all()
     return render_template("sales.html", listings=listings)
 
+@app.route("/opening-your-banq")
+def opening_your_banq():
+    return render_template("opening_your_banq.html")
+
 with app.app_context():
     db.create_all()
 

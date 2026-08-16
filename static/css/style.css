@@ -87,3 +87,48 @@ th {
   letter-spacing: 0.08em;
   color: var(--ink-55);
 }
+
+.step-group-header {
+  background: var(--ink);
+  color: var(--cream);
+  padding: 22px 20px;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin: 40px 0 20px;
+}
+
+.step-card {
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+}
+
+.step-card__title {
+  color: var(--ink);
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.step-card__body {
+  padding: 0;
+}
+
+.step-note {
+  margin-top: 12px;
+  padding-left: 14px;
+  border-left: 2px solid var(--border);
+}
+
+.step-note strong {
+  display: block;
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--ink);
+  font-weight: 700;
+  margin-bottom: 3px;
+}
