@@ -1,90 +1,585 @@
 {% extends "base.html" %}
-
+ 
 {% block content %}
-<h1>Lodge an Item</h1>
-
-{% if error %}
-<p class="form-error">{{ error }}</p>
-{% endif %}
-
-<form method="POST" class="lodge-form">
-  <label for="item_name">Item Name *</label>
-  <input type="text" id="item_name" name="item_name" required>
-
-  <label for="category">Category</label>
-  <select id="category" name="category">
-    <option value="">Select...</option>
-    {% for c in categories %}
-    <option value="{{ c }}">{{ c }}</option>
-    {% endfor %}
-  </select>
-
-  <label for="item_type">Item Type</label>
-  <select id="item_type" name="item_type">
-    <option value="">Select a category first</option>
-  </select>
-
-  <label for="colour">Colour</label>
-  <input type="text" id="colour" name="colour">
-
-  <label for="brand">Brand</label>
-  <input type="text" id="brand" name="brand">
-
-  <label for="wear_frequency">Wear Frequency</label>
-  <select id="wear_frequency" name="wear_frequency">
-    <option value="">Select...</option>
-    <option>Never Worn</option>
-    <option>Weekly</option>
-    <option>Monthly</option>
-    <option>Every Few Months</option>
-    <option>Once a year</option>
-    <option>1-2 times a year</option>
-    <option>Rarely</option>
-  </select>
-
-  <label for="estimated_value">Est. Value</label>
-  <input type="number" step="0.01" id="estimated_value" name="estimated_value">
-
-  <label for="resale_willingness">Resale Willingness</label>
-  <select id="resale_willingness" name="resale_willingness">
-    <option value="">Select...</option>
-    <option>Keep</option>
-    <option>Keep for now</option>
-    <option>Maybe sell</option>
-    <option>Sell if price is right</option>
-    <option>Sell now</option>
-  </select>
-
-  <label for="size">Size</label>
-  <input type="text" id="size" name="size">
-
-  <label for="notes">Notes</label>
-  <textarea id="notes" name="notes" rows="3"></textarea>
-
-  <button type="submit">Lodge Item</button>
-</form>
-
+{% set just_added = request.args.get('added') %}
+<div class="lodge-success-overlay" id="lodgeSuccessOverlay">
+  <div class="lodge-success-overlay__mark">BANQED</div>
+</div>
+ 
+<div class="lodge-page">
+  <h1 class="lodge-heading">Lodge an Item</h1>
+ 
+  {% if error %}
+  <p class="form-error">{{ error }}</p>
+  {% endif %}
+ 
+  <div class="lodge-layout" id="lodgeLayout">
+    <aside class="lodge-layout__aside" aria-hidden="true">
+      <div class="lodge-plus" id="lodgePlus">+</div>
+    </aside>
+ 
+    <form method="POST" class="lodge-form" id="lodgeForm" novalidate>
+ 
+      <!-- Identity -->
+      <section class="lodge-section" id="section-identity" data-section-key="identity">
+        <div class="lodge-section__header">
+          <span class="lodge-section__step">What is it?</span>
+          <h2 class="lodge-section__title">Name it and place it</h2>
+        </div>
+ 
+        <div class="lodge-grid lodge-grid--single">
+          <div class="lodge-field">
+            <label for="item_name">Item name</label>
+            <input type="text" id="item_name" name="item_name" required autocomplete="off">
+          </div>
+        </div>
+ 
+        <div class="lodge-grid">
+          <div class="lodge-field">
+            <label for="category">Category</label>
+            <select id="category" name="category">
+              <option value="">Select...</option>
+              {% for c in categories %}
+              <option value="{{ c }}">{{ c }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="lodge-field">
+            <label for="item_type">Item type</label>
+            <select id="item_type" name="item_type">
+              <option value="">Select a category first</option>
+            </select>
+          </div>
+        </div>
+ 
+        <div class="lodge-grid">
+          <div class="lodge-field">
+            <label>Colour</label>
+            <div class="multi-select" data-field="colour">
+              <button type="button" class="multi-select__trigger" data-multi-trigger="colour" aria-expanded="false">Select colours</button>
+              <div class="multi-select__panel" data-multi-panel="colour" hidden>
+                <div class="multi-select__options" data-multi-options="colour"></div>
+                <div class="multi-select__footer">
+                  <button type="button" class="multi-select__add" data-multi-add="colour">+ Add new</button>
+                  <button type="button" class="multi-select__done" data-multi-done="colour">Done</button>
+                </div>
+              </div>
+              <select id="colour" name="colour" multiple class="visually-hidden">
+                {% for c in form_options.colours %}
+                <option value="{{ c }}">{{ c }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+ 
+          <div class="lodge-field">
+            <label>Detailing</label>
+            <div class="multi-select" data-field="detailing">
+              <button type="button" class="multi-select__trigger" data-multi-trigger="detailing" aria-expanded="false">Select detailing</button>
+              <div class="multi-select__panel" data-multi-panel="detailing" hidden>
+                <div class="multi-select__options" data-multi-options="detailing"></div>
+                <div class="multi-select__footer">
+                  <button type="button" class="multi-select__add" data-multi-add="detailing">+ Add new</button>
+                  <button type="button" class="multi-select__done" data-multi-done="detailing">Done</button>
+                </div>
+              </div>
+              <select id="detailing" name="detailing" multiple class="visually-hidden">
+                {% for d in form_options.details %}
+                <option value="{{ d }}">{{ d }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+      </section>
+ 
+      <!-- Wearing -->
+      <section class="lodge-section" id="section-wearing" data-section-key="wearing">
+        <div class="lodge-section__header">
+          <span class="lodge-section__step">Step 2</span>
+          <h2 class="lodge-section__title">How do you wear it?</h2>
+        </div>
+ 
+        <div class="lodge-grid">
+          <div class="lodge-field">
+            <label>Context</label>
+            <div class="multi-select" data-field="context">
+              <button type="button" class="multi-select__trigger" data-multi-trigger="context" aria-expanded="false">Select contexts</button>
+              <div class="multi-select__panel" data-multi-panel="context" hidden>
+                <div class="multi-select__options" data-multi-options="context"></div>
+                <div class="multi-select__footer">
+                  <button type="button" class="multi-select__add" data-multi-add="context">+ Add new</button>
+                  <button type="button" class="multi-select__done" data-multi-done="context">Done</button>
+                </div>
+              </div>
+              <select id="context" name="context" multiple class="visually-hidden">
+                {% for c in form_options.contexts %}
+                <option value="{{ c }}">{{ c }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+ 
+          <div class="lodge-field">
+            <label>Style</label>
+            <div class="multi-select" data-field="style">
+              <button type="button" class="multi-select__trigger" data-multi-trigger="style" aria-expanded="false">Select styles</button>
+              <div class="multi-select__panel" data-multi-panel="style" hidden>
+                <div class="multi-select__options" data-multi-options="style"></div>
+                <div class="multi-select__footer">
+                  <button type="button" class="multi-select__add" data-multi-add="style">+ Add new</button>
+                  <button type="button" class="multi-select__done" data-multi-done="style">Done</button>
+                </div>
+              </div>
+              <select id="style" name="style" multiple class="visually-hidden">
+                {% for s in form_options.styles %}
+                <option value="{{ s }}">{{ s }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+      </section>
+ 
+      <!-- Source -->
+      <section class="lodge-section" id="section-source" data-section-key="source">
+        <div class="lodge-section__header">
+          <span class="lodge-section__step">Step 3</span>
+          <h2 class="lodge-section__title">Where is it from?</h2>
+        </div>
+ 
+        <div class="lodge-grid">
+          <div class="lodge-field">
+            <label for="brand">Brand</label>
+            <input type="text" id="brand" name="brand" list="brand-options" autocomplete="off">
+            <datalist id="brand-options">
+              {% for b in form_options.brands %}
+              <option value="{{ b }}">
+              {% endfor %}
+            </datalist>
+          </div>
+          <div class="lodge-field">
+            <label for="source_type">Source type</label>
+            <select id="source_type" name="source_type">
+              <option value="">Select...</option>
+              {% for s in form_options.source_types %}
+              <option value="{{ s }}">{{ s }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+ 
+        <div class="lodge-grid">
+          <div class="lodge-field">
+            <label for="purchase_method">Purchase method</label>
+            <select id="purchase_method" name="purchase_method">
+              <option value="">Select...</option>
+              {% for p in form_options.purchase_methods %}
+              <option value="{{ p }}">{{ p }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="lodge-field">
+            <label for="source">Source</label>
+            <input type="text" id="source" name="source" list="source-options" autocomplete="off">
+            <datalist id="source-options">
+              {% for s in form_options.sources %}
+              <option value="{{ s }}">
+              {% endfor %}
+            </datalist>
+          </div>
+        </div>
+ 
+        <div class="lodge-grid">
+          <div class="lodge-field">
+            <label for="country">Country</label>
+            <input type="text" id="country" name="country" list="country-options" autocomplete="off">
+            <datalist id="country-options">
+              {% for c in form_options.countries %}
+              <option value="{{ c }}">
+              {% endfor %}
+            </datalist>
+          </div>
+          <div class="lodge-field">
+            <label for="location">Location</label>
+            <input type="text" id="location" name="location" list="location-options" autocomplete="off">
+            <datalist id="location-options">
+              {% for l in form_options.locations %}
+              <option value="{{ l }}">
+              {% endfor %}
+            </datalist>
+          </div>
+        </div>
+      </section>
+ 
+      <!-- Usage + value -->
+      <section class="lodge-section" id="section-usage" data-section-key="usage">
+        <div class="lodge-section__header">
+          <span class="lodge-section__step">Step 4</span>
+          <h2 class="lodge-section__title">Usage + value</h2>
+        </div>
+ 
+        <div class="lodge-grid">
+          <div class="lodge-field">
+            <label for="wear_frequency">Wear frequency</label>
+            <select id="wear_frequency" name="wear_frequency">
+              <option value="">Select...</option>
+              <option>Never Worn</option>
+              <option>Weekly</option>
+              <option>Monthly</option>
+              <option>Every Few Months</option>
+              <option>Once a year</option>
+              <option>1-2 times a year</option>
+              <option>Rarely</option>
+            </select>
+          </div>
+          <div class="lodge-field">
+            <label for="estimated_value">Est. value</label>
+            <input type="number" step="0.01" min="0" id="estimated_value" name="estimated_value" inputmode="decimal">
+          </div>
+        </div>
+ 
+        <div class="lodge-grid lodge-grid--single">
+          <div class="lodge-field">
+            <label for="resale_willingness">Resale willingness</label>
+            <select id="resale_willingness" name="resale_willingness">
+              <option value="">Select...</option>
+              <option>Keep</option>
+              <option>Keep for now</option>
+              <option>Maybe sell</option>
+              <option>Sell if price is right</option>
+              <option>Sell now</option>
+            </select>
+          </div>
+        </div>
+      </section>
+ 
+      <!-- Feeling -->
+      <section class="lodge-section" id="section-emotion" data-section-key="emotion">
+        <div class="lodge-section__header">
+          <span class="lodge-section__step">Step 5</span>
+          <h2 class="lodge-section__title">How do you feel about it?</h2>
+        </div>
+ 
+        <div class="lodge-grid lodge-grid--single">
+          <div class="lodge-field">
+            <label for="item_rating">Item rating</label>
+            <select id="item_rating" name="item_rating">
+              <option value="">Select...</option>
+              <option>I love it</option>
+              <option>I really like it</option>
+              <option>I like it</option>
+              <option>High potential</option>
+              <option>Potential</option>
+              <option>Neutral</option>
+              <option>I don't like it</option>
+              <option>Doesn't Fit</option>
+            </select>
+          </div>
+        </div>
+ 
+        <div class="lodge-grid lodge-grid--single">
+          <div class="lodge-field">
+            <label for="notes">Notes</label>
+            <textarea id="notes" name="notes" rows="3"></textarea>
+          </div>
+        </div>
+ 
+        <div class="lodge-actions">
+          <button type="submit" class="lodge-submit">Lodge item</button>
+        </div>
+        <p id="form-feedback" class="form-feedback" aria-live="polite"></p>
+      </section>
+ 
+    </form>
+  </div>
+</div>
+ 
 <script>
+(function () {
   const categoryTypes = {{ category_to_types|tojson }};
   const categorySelect = document.getElementById("category");
   const itemTypeSelect = document.getElementById("item_type");
-
+ 
   categorySelect.addEventListener("change", function () {
     const types = categoryTypes[categorySelect.value] || [];
     itemTypeSelect.innerHTML = "";
-
+ 
     if (types.length === 0) {
       itemTypeSelect.innerHTML = '<option value="">No known types yet</option>';
-      return;
+    } else {
+      itemTypeSelect.innerHTML = '<option value="">Select...</option>';
+      types.forEach(function (t) {
+        const opt = document.createElement("option");
+        opt.value = t;
+        opt.textContent = t;
+        itemTypeSelect.appendChild(opt);
+      });
     }
-
-    itemTypeSelect.innerHTML = '<option value="">Select...</option>';
-    types.forEach(function (t) {
-      const opt = document.createElement("option");
-      opt.value = t;
-      opt.textContent = t;
-      itemTypeSelect.appendChild(opt);
+    updateSectionProgress("identity");
+  });
+ 
+  //  Multi-select (backed by a real hidden <select multiple>) 
+ 
+  const multiFields = ["colour", "detailing", "context", "style"];
+ 
+  function getHiddenSelect(field) {
+    return document.getElementById(field);
+  }
+ 
+  function getSelectedValues(field) {
+    return Array.from(getHiddenSelect(field).selectedOptions).map((o) => o.value);
+  }
+ 
+  function renderMultiOptions(field) {
+    const hiddenSelect = getHiddenSelect(field);
+    const container = document.querySelector(`[data-multi-options="${field}"]`);
+    container.innerHTML = "";
+ 
+    Array.from(hiddenSelect.options).forEach(function (opt) {
+      const row = document.createElement("div");
+      row.className = "multi-select__option" + (opt.selected ? " is-selected" : "");
+      row.textContent = opt.value;
+      row.addEventListener("click", function () {
+        opt.selected = !opt.selected;
+        row.classList.toggle("is-selected", opt.selected);
+        updateMultiTrigger(field);
+        updateSectionProgress(sectionKeyForField(field));
+      });
+      container.appendChild(row);
+    });
+  }
+ 
+  function updateMultiTrigger(field) {
+    const trigger = document.querySelector(`[data-multi-trigger="${field}"]`);
+    const values = getSelectedValues(field);
+    trigger.textContent = values.length > 0 ? values.join(", ") : `Select ${field}`;
+  }
+ 
+  function closeAllMultiPanels() {
+    document.querySelectorAll(".multi-select__panel").forEach(function (panel) {
+      panel.hidden = true;
+    });
+    document.querySelectorAll("[data-multi-trigger]").forEach(function (trigger) {
+      trigger.setAttribute("aria-expanded", "false");
+    });
+  }
+ 
+  multiFields.forEach(function (field) {
+    renderMultiOptions(field);
+    updateMultiTrigger(field);
+ 
+    document.querySelector(`[data-multi-trigger="${field}"]`).addEventListener("click", function (e) {
+      const panel = document.querySelector(`[data-multi-panel="${field}"]`);
+      const isOpen = !panel.hidden;
+      closeAllMultiPanels();
+      if (!isOpen) {
+        panel.hidden = false;
+        e.currentTarget.setAttribute("aria-expanded", "true");
+      }
+    });
+ 
+    document.querySelector(`[data-multi-done="${field}"]`).addEventListener("click", function () {
+      closeAllMultiPanels();
+    });
+ 
+    const addBtn = document.querySelector(`[data-multi-add="${field}"]`);
+    if (addBtn) {
+      addBtn.addEventListener("click", function () {
+        const value = window.prompt(`Add a new ${field} option`);
+        if (!value || !value.trim()) return;
+        const hiddenSelect = getHiddenSelect(field);
+        const exists = Array.from(hiddenSelect.options).some(
+          (o) => o.value.toLowerCase() === value.trim().toLowerCase()
+        );
+        if (!exists) {
+          const opt = document.createElement("option");
+          opt.value = value.trim();
+          hiddenSelect.appendChild(opt);
+        }
+        Array.from(hiddenSelect.options).forEach(function (o) {
+          if (o.value.toLowerCase() === value.trim().toLowerCase()) o.selected = true;
+        });
+        renderMultiOptions(field);
+        updateMultiTrigger(field);
+        updateSectionProgress(sectionKeyForField(field));
+      });
+    }
+  });
+ 
+  document.addEventListener("click", function (e) {
+    if (!e.target.closest(".multi-select")) closeAllMultiPanels();
+  });
+ 
+  function sectionKeyForField(field) {
+    if (field === "colour" || field === "detailing") return "identity";
+    return "wearing";
+  }
+ 
+  //  Section auto-advance 
+ 
+  const sectionOrder = ["identity", "wearing", "source", "usage", "emotion"];
+  const sections = {};
+  sectionOrder.forEach((key) => {
+    sections[key] = document.getElementById(`section-${key}`);
+  });
+ 
+  const completedSections = new Set();
+  let activeSectionKey = "identity";
+ 
+  const layout = document.getElementById("lodgeLayout");
+  const plus = document.getElementById("lodgePlus");
+ 
+  function isSectionComplete(key) {
+    if (key === "identity") {
+      return (
+        document.getElementById("item_name").value.trim() !== "" &&
+        document.getElementById("category").value !== "" &&
+        document.getElementById("item_type").value !== "" &&
+        getSelectedValues("colour").length > 0 &&
+        getSelectedValues("detailing").length > 0
+      );
+    }
+    if (key === "wearing") {
+      return getSelectedValues("context").length > 0 && getSelectedValues("style").length > 0;
+    }
+    if (key === "source") {
+      return (
+        document.getElementById("brand").value.trim() !== "" &&
+        document.getElementById("source_type").value !== "" &&
+        document.getElementById("source").value.trim() !== ""
+      );
+    }
+    if (key === "usage") {
+      const val = document.getElementById("estimated_value").value;
+      return (
+        document.getElementById("wear_frequency").value !== "" &&
+        val !== "" && Number(val) >= 0 &&
+        document.getElementById("resale_willingness").value !== ""
+      );
+    }
+    return true;
+  }
+ 
+  function renderSectionStates() {
+    sectionOrder.forEach((key) => {
+      const el = sections[key];
+      el.classList.remove("is-active", "is-complete");
+      if (key === activeSectionKey) {
+        el.classList.add("is-active");
+      } else if (completedSections.has(key)) {
+        el.classList.add("is-complete");
+      }
+    });
+    updatePlusPosition();
+  }
+ 
+  function getSectionWorkingTarget(sectionEl) {
+    const openPanel = sectionEl.querySelector(".multi-select__panel:not([hidden])");
+    if (openPanel) {
+      const field = openPanel.closest(".multi-select").dataset.field;
+      return document.querySelector(`[data-multi-trigger="${field}"]`);
+    }
+    const firstField = sectionEl.querySelector("input:not([type=hidden]), select, textarea, [data-multi-trigger]");
+    if (firstField) return firstField;
+    return sectionEl;
+  }
+ 
+  // Anchor the working field at a fixed point in the viewport (42% down) —
+  // consistent for every section, including short trailing ones like "emotion",
+  // so nothing ever lands noticeably above or below where the eye expects it.
+  const WORKING_ANCHOR_RATIO = 0.42;
+ 
+  function scrollElementToWorkingCenter(targetEl) {
+    if (!targetEl) return;
+    const rect = targetEl.getBoundingClientRect();
+    const absoluteTop = window.scrollY + rect.top;
+    const targetTop = absoluteTop - (window.innerHeight * WORKING_ANCHOR_RATIO) + (rect.height / 2);
+    window.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
+  }
+ 
+  function recenterActiveSection() {
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        scrollElementToWorkingCenter(getSectionWorkingTarget(sections[activeSectionKey]));
+      });
+    });
+  }
+ 
+  function updatePlusPosition() {
+    if (!layout || !plus) return;
+    const activeEl = sections[activeSectionKey];
+    if (!activeEl) return;
+    const offset = Math.max(0, activeEl.offsetTop + (activeEl.offsetHeight / 2) - (plus.offsetHeight / 2));
+    layout.style.setProperty("--plus-offset", `${offset}px`);
+  }
+ 
+  function updateSectionProgress(key) {
+    if (isSectionComplete(key)) {
+      completedSections.add(key);
+      const idx = sectionOrder.indexOf(key);
+      const nextKey = sectionOrder[idx + 1];
+      if (nextKey && activeSectionKey === key) {
+        activeSectionKey = nextKey;
+        renderSectionStates();
+        recenterActiveSection();
+        return;
+      }
+    } else {
+      completedSections.delete(key);
+    }
+    renderSectionStates();
+  }
+ 
+  // Click a greyed-out completed section to jump back and edit it
+  sectionOrder.forEach((key) => {
+    sections[key].addEventListener("click", function (e) {
+      if (sections[key].classList.contains("is-complete")) {
+        activeSectionKey = key;
+        renderSectionStates();
+        recenterActiveSection();
+      }
     });
   });
+ 
+  // Wire up plain inputs/selects across all sections
+  document.querySelectorAll(".lodge-field input, .lodge-field select, .lodge-field textarea").forEach(function (el) {
+    const section = el.closest(".lodge-section");
+    if (!section) return;
+    const key = section.dataset.sectionKey;
+    const evt = el.tagName === "SELECT" ? "change" : "input";
+    el.addEventListener(evt, function () {
+      updateSectionProgress(key);
+    });
+  });
+ 
+  window.addEventListener("resize", updatePlusPosition);
+ 
+  renderSectionStates();
+  window.setTimeout(updatePlusPosition, 50);
+ 
+  // ---- Post-submit splash 
+  // app.py redirects back here with ?added=1 after a successful save.
+  // Show the wordmark instantly (no fade-in) so it's the very first thing
+  // painted, hold briefly, then fade out onto the fresh, empty form at the top.
+  const justAdded = {{ 'true' if just_added else 'false' }};
+  const overlay = document.getElementById("lodgeSuccessOverlay");
+ 
+  if (justAdded && overlay) {
+    window.scrollTo(0, 0);
+    overlay.style.transition = "none";
+    overlay.classList.add("is-visible");
+ 
+    // Strip ?added=1 from the URL so a refresh doesn't replay the splash.
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+ 
+    window.setTimeout(function () {
+      overlay.style.transition = "";
+      overlay.classList.remove("is-visible");
+    }, 850);
+  }
+})();
 </script>
 {% endblock %}
