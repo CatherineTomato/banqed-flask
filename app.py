@@ -38,13 +38,17 @@ def progress():
 
     items_lodged = Item.query.count()
     items_listed = SaleListing.query.count()
-    items_sold = SaleListing.query.filter_by(status="Money received").count()
+    completed_statuses = ["Sold", "Posted", "Money received"]
+
+    items_sold = SaleListing.query.filter(
+        SaleListing.status.in_(completed_statuses)
+    ).count()
 
     total_revenue = db.session.query(func.sum(SaleListing.sold_for)).filter(
-        SaleListing.status == "Money received"
+        SaleListing.status.in_(completed_statuses)
     ).scalar() or 0
     listed_value = db.session.query(func.sum(SaleListing.listing_price)).filter(
-        SaleListing.status != "Money received"
+        SaleListing.status.notin_(completed_statuses)
     ).scalar() or 0
 
     return render_template(
