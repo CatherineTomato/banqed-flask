@@ -2,6 +2,7 @@
   --paper: #f7f6f2;
   --ink: #1a1a1a;
   --ink-55: rgba(26, 26, 26, 0.55);
+  --cream: #eae8e2;
   --border: #d8d3c8;
   --font-sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
@@ -19,20 +20,24 @@ body {
 
 nav {
   display: flex;
-  gap: 24px;
-  padding: 20px 32px;
-  border-bottom: 2px solid var(--ink);
+  align-items: center;
+  gap: 40px;
+  padding: 28px 40px;
+  background: var(--ink);
+}
+
+nav img {
+  height: 34px;
 }
 
 nav a {
-  color: var(--ink);
+  color: var(--cream);
   text-decoration: none;
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
-
 main {
   padding: 32px;
 }
