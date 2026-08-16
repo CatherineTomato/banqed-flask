@@ -1,5 +1,6 @@
 from flask import Flask, render_template
 from models import db, Item, SaleListing
+from sqlalchemy import func
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///banqed.db"
@@ -24,6 +25,39 @@ def sales():
 @app.route("/opening-your-banq")
 def opening_your_banq():
     return render_template("opening_your_banq.html")
+
+@app.route("/progress")
+def progress():
+    total_value = db.session.query(func.sum(Item.estimated_value)).scalar() or 0
+    rarely_worn_value = db.session.query(func.sum(Item.estimated_value)).filter(
+        Item.wear_frequency.in_(["Rarely", "Never Worn"])
+    ).scalar() or 0
+    value_to_resell = db.session.query(func.sum(Item.estimated_value)).filter(
+        Item.resale_willingness.in_(["Sell now", "Maybe sell", "Sell if price is right"])
+    ).scalar() or 0
+
+    items_lodged = Item.query.count()
+    items_listed = SaleListing.query.count()
+    items_sold = SaleListing.query.filter_by(status="Money received").count()
+
+    total_revenue = db.session.query(func.sum(SaleListing.sold_for)).filter(
+        SaleListing.status == "Money received"
+    ).scalar() or 0
+    listed_value = db.session.query(func.sum(SaleListing.listing_price)).filter(
+        SaleListing.status != "Money received"
+    ).scalar() or 0
+
+    return render_template(
+        "progress.html",
+        total_value=total_value,
+        rarely_worn_value=rarely_worn_value,
+        value_to_resell=value_to_resell,
+        items_lodged=items_lodged,
+        items_listed=items_listed,
+        items_sold=items_sold,
+        total_revenue=total_revenue,
+        listed_value=listed_value,
+    )
 
 with app.app_context():
     db.create_all()

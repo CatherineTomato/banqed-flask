@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Progress</h1>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-card__value">&euro;{{ '%.2f'|format(total_value) }}</div>
+    <div class="stat-card__label">In Banq</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card__value">&euro;{{ '%.2f'|format(listed_value) }}</div>
+    <div class="stat-card__label">Listed Value</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card__value">&euro;{{ '%.2f'|format(value_to_resell) }}</div>
+    <div class="stat-card__label">Value to Resell</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card__value">&euro;{{ '%.2f'|format(rarely_worn_value) }}</div>
+    <div class="stat-card__label">Rarely Worn Value</div>
+  </div>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-card__value">{{ items_lodged }}</div>
+    <div class="stat-card__label">Items Lodged</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card__value">{{ items_listed }}</div>
+    <div class="stat-card__label">Items Listed</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card__value">{{ items_sold }}</div>
+    <div class="stat-card__label">Items Sold</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-card__value">&euro;{{ '%.2f'|format(total_revenue) }}</div>
+    <div class="stat-card__label">Total Revenue</div>
+  </div>
+</div>
+{% endblock %}
