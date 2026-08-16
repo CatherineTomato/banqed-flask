@@ -38,6 +38,32 @@ nav a {
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
+
+.nav-disabled {
+  color: rgba(234, 232, 226, 0.35);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: default;
+}
+
+nav a.logo-link {
+  display: flex;
+  align-items: center;
+}
+
+.nav-cta {
+  margin-left: auto;
+  padding: 8px 16px;
+  border: 1px solid rgba(234, 232, 226, 0.35);
+  color: rgba(234, 232, 226, 0.35);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: default;
+}
 main {
   padding: 32px;
 }
