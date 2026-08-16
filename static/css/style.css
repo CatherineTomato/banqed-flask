@@ -56,14 +56,21 @@ nav a.logo-link {
 .nav-cta {
   margin-left: auto;
   padding: 8px 16px;
-  border: 1px solid rgba(234, 232, 226, 0.35);
-  color: rgba(234, 232, 226, 0.35);
+  background: var(--cream);
+  color: var(--ink);
+  border: 1px solid var(--cream);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  cursor: default;
+  text-decoration: none;
+  cursor: pointer;
 }
+
+.nav-cta:hover {
+  background: var(--paper);
+}
+
 main {
   padding: 32px;
 }
@@ -159,4 +166,49 @@ th {
   letter-spacing: 0.08em;
   color: var(--ink-55);
   margin-top: 6px;
+}
+
+.lodge-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 480px;
+  margin-top: 24px;
+}
+
+.lodge-form label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-55);
+  margin-top: 14px;
+}
+
+.lodge-form input,
+.lodge-form select,
+.lodge-form textarea {
+  padding: 10px;
+  border: 1px solid var(--border);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  background: #fff;
+}
+
+.lodge-form button {
+  margin-top: 20px;
+  padding: 12px 20px;
+  background: var(--ink);
+  color: var(--cream);
+  border: none;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.form-error {
+  color: #b3261e;
+  font-weight: 600;
+  margin-top: 12px;
 }
