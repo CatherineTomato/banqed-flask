@@ -1,422 +1,522 @@
 {% extends "base.html" %}
  
+{#
+  One dropdown component, used for every categorical field on this form.
+ 
+  Closed, it reads "Select category" and shows the chosen value(s).
+  Opened, the same box becomes the search field. There is no separate search
+  row and no permanent "add new" button: if a search returns nothing, an
+  "Add" button appears in its place.
+ 
+  mode   = 'single' | 'multi'
+  closed = True for fixed scales (wear frequency, resale willingness,
+           item rating), which have no add-new at all.
+#}
+{% macro dropdown_field(field, label, mode='single', closed=False) %}
+<div class="lodge-field">
+  <label for="dd-input-{{ field }}">{{ label }}</label>
+  <div class="dropdown" data-field="{{ field }}" data-mode="{{ mode }}" data-closed="{{ 'true' if closed else 'false' }}">
+    <div class="dropdown__control">
+      <input type="text" class="dropdown__input" id="dd-input-{{ field }}" data-dd-input="{{ field }}"
+        data-placeholder="Select {{ label|lower }}" data-search-placeholder="Search {{ label|lower }}&hellip;"
+        placeholder="Select {{ label|lower }}" readonly autocomplete="off"
+        role="combobox" aria-expanded="false" aria-autocomplete="list">
+      <span class="dropdown__chevron" aria-hidden="true"></span>
+    </div>
+ 
+    <div class="dropdown__panel" data-dd-panel="{{ field }}" hidden>
+      <div class="dropdown__options" data-dd-options="{{ field }}" role="listbox"></div>
+      {% if mode == 'multi' %}
+      <div class="dropdown__footer">
+        <button type="button" class="dropdown__done" data-dd-done="{{ field }}">Done</button>
+      </div>
+      {% endif %}
+    </div>
+ 
+    {% if mode == 'multi' %}
+    <select id="{{ field }}" name="{{ field }}" multiple class="visually-hidden" tabindex="-1" aria-hidden="true"></select>
+    {% else %}
+    <input type="hidden" id="{{ field }}" name="{{ field }}" value="">
+    {% endif %}
+  </div>
+</div>
+{% endmacro %}
+ 
 {% block content %}
+{# v7 — fix null Done-button crash on single fields, fix outside-click capture-phase race that closed multi-selects on every pick #}
 {% set just_added = request.args.get('added') %}
 <div class="lodge-success-overlay" id="lodgeSuccessOverlay">
   <div class="lodge-success-overlay__mark">BANQED</div>
 </div>
  
 <div class="lodge-page">
-  <h1 class="lodge-heading">Lodge an Item</h1>
- 
-  {% if error %}
-  <p class="form-error">{{ error }}</p>
-  {% endif %}
- 
   <div class="lodge-layout" id="lodgeLayout">
-    <aside class="lodge-layout__aside" aria-hidden="true">
+    <aside class="lodge-layout__aside" aria-hidden="false">
+      <div class="lodge-jumps" id="lodgeJumps"></div>
       <div class="lodge-plus" id="lodgePlus">+</div>
     </aside>
  
-    <form method="POST" class="lodge-form" id="lodgeForm" novalidate>
+    <div class="lodge-layout__main">
+      <h1 class="lodge-heading">Lodge an Item</h1>
  
-      <!-- Identity -->
-      <section class="lodge-section" id="section-identity" data-section-key="identity">
-        <div class="lodge-section__header">
-          <span class="lodge-section__step">What is it?</span>
-          <h2 class="lodge-section__title">Name it and place it</h2>
-        </div>
+      {% if error %}
+      <p class="form-error">{{ error }}</p>
+      {% endif %}
  
-        <div class="lodge-grid lodge-grid--single">
-          <div class="lodge-field">
-            <label for="item_name">Item name</label>
-            <input type="text" id="item_name" name="item_name" required autocomplete="off">
+      <form method="POST" class="lodge-form" id="lodgeForm" novalidate>
+ 
+        <section class="lodge-section" id="section-identity" data-section-key="identity">
+          <div class="lodge-section__header">
+            <span class="lodge-section__step">Step 1</span>
+            <h2 class="lodge-section__title">What is it?</h2>
           </div>
-        </div>
  
-        <div class="lodge-grid">
-          <div class="lodge-field">
-            <label for="category">Category</label>
-            <select id="category" name="category">
-              <option value="">Select...</option>
-              {% for c in categories %}
-              <option value="{{ c }}">{{ c }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="lodge-field">
-            <label for="item_type">Item type</label>
-            <select id="item_type" name="item_type">
-              <option value="">Select a category first</option>
-            </select>
-          </div>
-        </div>
- 
-        <div class="lodge-grid">
-          <div class="lodge-field">
-            <label>Colour</label>
-            <div class="multi-select" data-field="colour">
-              <button type="button" class="multi-select__trigger" data-multi-trigger="colour" aria-expanded="false">Select colours</button>
-              <div class="multi-select__panel" data-multi-panel="colour" hidden>
-                <div class="multi-select__options" data-multi-options="colour"></div>
-                <div class="multi-select__footer">
-                  <button type="button" class="multi-select__add" data-multi-add="colour">+ Add new</button>
-                  <button type="button" class="multi-select__done" data-multi-done="colour">Done</button>
-                </div>
-              </div>
-              <select id="colour" name="colour" multiple class="visually-hidden">
-                {% for c in form_options.colours %}
-                <option value="{{ c }}">{{ c }}</option>
-                {% endfor %}
-              </select>
+          <div class="lodge-grid lodge-grid--single">
+            <div class="lodge-field">
+              <label for="item_name">Item name</label>
+              <input type="text" id="item_name" name="item_name" required autocomplete="new-password">
             </div>
           </div>
  
-          <div class="lodge-field">
-            <label>Detailing</label>
-            <div class="multi-select" data-field="detailing">
-              <button type="button" class="multi-select__trigger" data-multi-trigger="detailing" aria-expanded="false">Select detailing</button>
-              <div class="multi-select__panel" data-multi-panel="detailing" hidden>
-                <div class="multi-select__options" data-multi-options="detailing"></div>
-                <div class="multi-select__footer">
-                  <button type="button" class="multi-select__add" data-multi-add="detailing">+ Add new</button>
-                  <button type="button" class="multi-select__done" data-multi-done="detailing">Done</button>
-                </div>
-              </div>
-              <select id="detailing" name="detailing" multiple class="visually-hidden">
-                {% for d in form_options.details %}
-                <option value="{{ d }}">{{ d }}</option>
-                {% endfor %}
-              </select>
+          <div class="lodge-grid">
+            {{ dropdown_field('category', 'Category') }}
+            {{ dropdown_field('item_type', 'Item type') }}
+          </div>
+ 
+          <div class="lodge-grid">
+            {{ dropdown_field('colour', 'Colour', 'multi') }}
+            {{ dropdown_field('detailing', 'Detailing', 'multi') }}
+          </div>
+        </section>
+ 
+        <section class="lodge-section" id="section-wearing" data-section-key="wearing">
+          <div class="lodge-section__header">
+            <span class="lodge-section__step">Step 2</span>
+            <h2 class="lodge-section__title">How do you wear it?</h2>
+          </div>
+ 
+          <div class="lodge-grid">
+            {{ dropdown_field('context', 'Context', 'multi') }}
+            {{ dropdown_field('style', 'Style', 'multi') }}
+          </div>
+        </section>
+ 
+        <section class="lodge-section" id="section-source" data-section-key="source">
+          <div class="lodge-section__header">
+            <span class="lodge-section__step">Step 3</span>
+            <h2 class="lodge-section__title">Where is it from?</h2>
+          </div>
+ 
+          <div class="lodge-grid">
+            {{ dropdown_field('brand', 'Brand') }}
+            {{ dropdown_field('source_type', 'Source type') }}
+          </div>
+ 
+          <div class="lodge-grid">
+            {{ dropdown_field('purchase_method', 'Purchase method') }}
+            {{ dropdown_field('source', 'Source') }}
+          </div>
+ 
+          <div class="lodge-grid">
+            {{ dropdown_field('country', 'Country') }}
+            {{ dropdown_field('location', 'Location') }}
+          </div>
+        </section>
+ 
+        <section class="lodge-section" id="section-usage" data-section-key="usage">
+          <div class="lodge-section__header">
+            <span class="lodge-section__step">Step 4</span>
+            <h2 class="lodge-section__title">Usage + value</h2>
+          </div>
+ 
+          <div class="lodge-grid">
+            {{ dropdown_field('wear_frequency', 'Wear frequency', 'single', True) }}
+            <div class="lodge-field">
+              <label for="estimated_value">Est. value</label>
+              <input type="number" step="0.01" min="0" id="estimated_value" name="estimated_value" inputmode="decimal" autocomplete="off">
             </div>
           </div>
-        </div>
-      </section>
  
-      <!-- Wearing -->
-      <section class="lodge-section" id="section-wearing" data-section-key="wearing">
-        <div class="lodge-section__header">
-          <span class="lodge-section__step">Step 2</span>
-          <h2 class="lodge-section__title">How do you wear it?</h2>
-        </div>
+          <div class="lodge-grid lodge-grid--single">
+            {{ dropdown_field('resale_willingness', 'Resale willingness', 'single', True) }}
+          </div>
+        </section>
  
-        <div class="lodge-grid">
-          <div class="lodge-field">
-            <label>Context</label>
-            <div class="multi-select" data-field="context">
-              <button type="button" class="multi-select__trigger" data-multi-trigger="context" aria-expanded="false">Select contexts</button>
-              <div class="multi-select__panel" data-multi-panel="context" hidden>
-                <div class="multi-select__options" data-multi-options="context"></div>
-                <div class="multi-select__footer">
-                  <button type="button" class="multi-select__add" data-multi-add="context">+ Add new</button>
-                  <button type="button" class="multi-select__done" data-multi-done="context">Done</button>
-                </div>
-              </div>
-              <select id="context" name="context" multiple class="visually-hidden">
-                {% for c in form_options.contexts %}
-                <option value="{{ c }}">{{ c }}</option>
-                {% endfor %}
-              </select>
+        <section class="lodge-section" id="section-emotion" data-section-key="emotion">
+          <div class="lodge-section__header">
+            <span class="lodge-section__step">Step 5</span>
+            <h2 class="lodge-section__title">How do you feel about it?</h2>
+          </div>
+ 
+          <div class="lodge-grid lodge-grid--single">
+            {{ dropdown_field('item_rating', 'Item rating', 'single', True) }}
+          </div>
+ 
+          <div class="lodge-grid lodge-grid--single">
+            <div class="lodge-field">
+              <label for="notes">Notes</label>
+              <textarea id="notes" name="notes" rows="3"></textarea>
             </div>
           </div>
  
-          <div class="lodge-field">
-            <label>Style</label>
-            <div class="multi-select" data-field="style">
-              <button type="button" class="multi-select__trigger" data-multi-trigger="style" aria-expanded="false">Select styles</button>
-              <div class="multi-select__panel" data-multi-panel="style" hidden>
-                <div class="multi-select__options" data-multi-options="style"></div>
-                <div class="multi-select__footer">
-                  <button type="button" class="multi-select__add" data-multi-add="style">+ Add new</button>
-                  <button type="button" class="multi-select__done" data-multi-done="style">Done</button>
-                </div>
-              </div>
-              <select id="style" name="style" multiple class="visually-hidden">
-                {% for s in form_options.styles %}
-                <option value="{{ s }}">{{ s }}</option>
-                {% endfor %}
-              </select>
-            </div>
+          <div class="lodge-actions">
+            <button type="submit" class="lodge-submit">Lodge item</button>
           </div>
-        </div>
-      </section>
+        </section>
  
-      <!-- Source -->
-      <section class="lodge-section" id="section-source" data-section-key="source">
-        <div class="lodge-section__header">
-          <span class="lodge-section__step">Step 3</span>
-          <h2 class="lodge-section__title">Where is it from?</h2>
-        </div>
- 
-        <div class="lodge-grid">
-          <div class="lodge-field">
-            <label for="brand">Brand</label>
-            <input type="text" id="brand" name="brand" list="brand-options" autocomplete="off">
-            <datalist id="brand-options">
-              {% for b in form_options.brands %}
-              <option value="{{ b }}">
-              {% endfor %}
-            </datalist>
-          </div>
-          <div class="lodge-field">
-            <label for="source_type">Source type</label>
-            <select id="source_type" name="source_type">
-              <option value="">Select...</option>
-              {% for s in form_options.source_types %}
-              <option value="{{ s }}">{{ s }}</option>
-              {% endfor %}
-            </select>
-          </div>
-        </div>
- 
-        <div class="lodge-grid">
-          <div class="lodge-field">
-            <label for="purchase_method">Purchase method</label>
-            <select id="purchase_method" name="purchase_method">
-              <option value="">Select...</option>
-              {% for p in form_options.purchase_methods %}
-              <option value="{{ p }}">{{ p }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="lodge-field">
-            <label for="source">Source</label>
-            <input type="text" id="source" name="source" list="source-options" autocomplete="off">
-            <datalist id="source-options">
-              {% for s in form_options.sources %}
-              <option value="{{ s }}">
-              {% endfor %}
-            </datalist>
-          </div>
-        </div>
- 
-        <div class="lodge-grid">
-          <div class="lodge-field">
-            <label for="country">Country</label>
-            <input type="text" id="country" name="country" list="country-options" autocomplete="off">
-            <datalist id="country-options">
-              {% for c in form_options.countries %}
-              <option value="{{ c }}">
-              {% endfor %}
-            </datalist>
-          </div>
-          <div class="lodge-field">
-            <label for="location">Location</label>
-            <input type="text" id="location" name="location" list="location-options" autocomplete="off">
-            <datalist id="location-options">
-              {% for l in form_options.locations %}
-              <option value="{{ l }}">
-              {% endfor %}
-            </datalist>
-          </div>
-        </div>
-      </section>
- 
-      <!-- Usage + value -->
-      <section class="lodge-section" id="section-usage" data-section-key="usage">
-        <div class="lodge-section__header">
-          <span class="lodge-section__step">Step 4</span>
-          <h2 class="lodge-section__title">Usage + value</h2>
-        </div>
- 
-        <div class="lodge-grid">
-          <div class="lodge-field">
-            <label for="wear_frequency">Wear frequency</label>
-            <select id="wear_frequency" name="wear_frequency">
-              <option value="">Select...</option>
-              <option>Never Worn</option>
-              <option>Weekly</option>
-              <option>Monthly</option>
-              <option>Every Few Months</option>
-              <option>Once a year</option>
-              <option>1-2 times a year</option>
-              <option>Rarely</option>
-            </select>
-          </div>
-          <div class="lodge-field">
-            <label for="estimated_value">Est. value</label>
-            <input type="number" step="0.01" min="0" id="estimated_value" name="estimated_value" inputmode="decimal">
-          </div>
-        </div>
- 
-        <div class="lodge-grid lodge-grid--single">
-          <div class="lodge-field">
-            <label for="resale_willingness">Resale willingness</label>
-            <select id="resale_willingness" name="resale_willingness">
-              <option value="">Select...</option>
-              <option>Keep</option>
-              <option>Keep for now</option>
-              <option>Maybe sell</option>
-              <option>Sell if price is right</option>
-              <option>Sell now</option>
-            </select>
-          </div>
-        </div>
-      </section>
- 
-      <!-- Feeling -->
-      <section class="lodge-section" id="section-emotion" data-section-key="emotion">
-        <div class="lodge-section__header">
-          <span class="lodge-section__step">Step 5</span>
-          <h2 class="lodge-section__title">How do you feel about it?</h2>
-        </div>
- 
-        <div class="lodge-grid lodge-grid--single">
-          <div class="lodge-field">
-            <label for="item_rating">Item rating</label>
-            <select id="item_rating" name="item_rating">
-              <option value="">Select...</option>
-              <option>I love it</option>
-              <option>I really like it</option>
-              <option>I like it</option>
-              <option>High potential</option>
-              <option>Potential</option>
-              <option>Neutral</option>
-              <option>I don't like it</option>
-              <option>Doesn't Fit</option>
-            </select>
-          </div>
-        </div>
- 
-        <div class="lodge-grid lodge-grid--single">
-          <div class="lodge-field">
-            <label for="notes">Notes</label>
-            <textarea id="notes" name="notes" rows="3"></textarea>
-          </div>
-        </div>
- 
-        <div class="lodge-actions">
-          <button type="submit" class="lodge-submit">Lodge item</button>
-        </div>
-        <p id="form-feedback" class="form-feedback" aria-live="polite"></p>
-      </section>
- 
-    </form>
+      </form>
+    </div>
   </div>
 </div>
  
 <script>
 (function () {
-  const categoryTypes = {{ category_to_types|tojson }};
-  const categorySelect = document.getElementById("category");
-  const itemTypeSelect = document.getElementById("item_type");
+  "use strict";
  
-  categorySelect.addEventListener("change", function () {
-    const types = categoryTypes[categorySelect.value] || [];
-    itemTypeSelect.innerHTML = "";
+  // ---- Data handed over from the server ----
  
-    if (types.length === 0) {
-      itemTypeSelect.innerHTML = '<option value="">No known types yet</option>';
-    } else {
-      itemTypeSelect.innerHTML = '<option value="">Select...</option>';
-      types.forEach(function (t) {
-        const opt = document.createElement("option");
-        opt.value = t;
-        opt.textContent = t;
-        itemTypeSelect.appendChild(opt);
-      });
-    }
-    updateSectionProgress("identity");
-  });
+  const FIELD_OPTIONS = {{ field_options|tojson }};
+  // item_type and location are dependent fields — their options come from the
+  // currently chosen parent (category / country). Add them here so they are
+  // included in Object.keys(FIELD_OPTIONS) when initState runs, ensuring
+  // state["item_type"] and state["location"] exist before any event handler
+  // can call refreshChild() and try to write to them.
+  FIELD_OPTIONS.item_type = [];
+  FIELD_OPTIONS.location = [];
  
-  //  Multi-select (backed by a real hidden <select multiple>) 
+  const CLOSED_FIELDS = new Set({{ closed_fields|tojson }});
+  const MULTI_FIELDS = new Set(["colour", "detailing", "context", "style"]);
  
-  const multiFields = ["colour", "detailing", "context", "style"];
+  // Child field -> parent field. A child's options depend on the parent's
+  // current value: item types come from the chosen category, locations from
+  // the chosen country.
+  const DEPENDENTS = { item_type: "category", location: "country" };
  
-  function getHiddenSelect(field) {
-    return document.getElementById(field);
-  }
+  // parentField -> { parentValue: [child options] }
+  const NESTED = {
+    category: {{ category_to_types|tojson }},
+    country: {{ country_to_cities|tojson }}
+  };
  
-  function getSelectedValues(field) {
-    return Array.from(getHiddenSelect(field).selectedOptions).map((o) => o.value);
-  }
+  const state = {};
+  const isMulti = (field) => MULTI_FIELDS.has(field);
+  const childOf = (parent) =>
+    Object.keys(DEPENDENTS).find((child) => DEPENDENTS[child] === parent);
  
-  function renderMultiOptions(field) {
-    const hiddenSelect = getHiddenSelect(field);
-    const container = document.querySelector(`[data-multi-options="${field}"]`);
+  const dom = {
+    input: (f) => document.querySelector(`[data-dd-input="${f}"]`),
+    panel: (f) => document.querySelector(`[data-dd-panel="${f}"]`),
+    options: (f) => document.querySelector(`[data-dd-options="${f}"]`)
+  };
+ 
+  // --------------------------------------------------------------- rendering
+ 
+  function renderOptions(field) {
+    const s = state[field];
+    const container = dom.options(field);
     container.innerHTML = "";
  
-    Array.from(hiddenSelect.options).forEach(function (opt) {
+    const parent = DEPENDENTS[field];
+    if (parent && !state[parent].selected) {
+      container.appendChild(hint(`Choose a ${parent.replace(/_/g, " ")} first`));
+      return;
+    }
+ 
+    const query = s.query.trim();
+    const needle = query.toLowerCase();
+    const matches = s.options.filter((o) => o.toLowerCase().includes(needle));
+ 
+    if (matches.length === 0) {
+      container.appendChild(emptyState(field, query));
+      return;
+    }
+ 
+    matches.forEach(function (option) {
+      const selected = isMulti(field)
+        ? s.selected.includes(option)
+        : s.selected === option;
+ 
       const row = document.createElement("div");
-      row.className = "multi-select__option" + (opt.selected ? " is-selected" : "");
-      row.textContent = opt.value;
-      row.addEventListener("click", function () {
-        opt.selected = !opt.selected;
-        row.classList.toggle("is-selected", opt.selected);
-        updateMultiTrigger(field);
-        updateSectionProgress(sectionKeyForField(field));
+      row.className = "dropdown__option" + (selected ? " is-selected" : "");
+      row.setAttribute("role", "option");
+      row.setAttribute("aria-selected", selected ? "true" : "false");
+      row.textContent = option;
+      row.addEventListener("mousedown", function (event) {
+        event.preventDefault(); // keep focus in the search box
+        toggleOption(field, option);
       });
       container.appendChild(row);
     });
   }
  
-  function updateMultiTrigger(field) {
-    const trigger = document.querySelector(`[data-multi-trigger="${field}"]`);
-    const values = getSelectedValues(field);
-    trigger.textContent = values.length > 0 ? values.join(", ") : `Select ${field}`;
+  function hint(text) {
+    const node = document.createElement("div");
+    node.className = "dropdown__hint";
+    node.textContent = text;
+    return node;
   }
  
-  function closeAllMultiPanels() {
-    document.querySelectorAll(".multi-select__panel").forEach(function (panel) {
-      panel.hidden = true;
-    });
-    document.querySelectorAll("[data-multi-trigger]").forEach(function (trigger) {
-      trigger.setAttribute("aria-expanded", "false");
+  // Shown when a search returns nothing. For open fields this is where
+  // adding a new value happens — there's no permanent add button anywhere.
+  function emptyState(field, query) {
+    const wrap = document.createElement("div");
+    wrap.className = "dropdown__empty";
+ 
+    const message = document.createElement("p");
+    message.className = "dropdown__emptytext";
+    message.textContent = query ? `No matches for "${query}"` : "Nothing here yet";
+    wrap.appendChild(message);
+ 
+    if (!CLOSED_FIELDS.has(field) && query) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "dropdown__addnew";
+      button.textContent = `+ Add "${query}"`;
+      button.addEventListener("mousedown", function (event) {
+        event.preventDefault();
+        addNewValue(field, query);
+      });
+      wrap.appendChild(button);
+ 
+      const note = document.createElement("p");
+      note.className = "dropdown__addnote";
+      note.textContent = "Saved for every future item once you lodge this one";
+      wrap.appendChild(note);
+    } else if (!CLOSED_FIELDS.has(field)) {
+      wrap.appendChild(hint("Type a name to add one"));
+    }
+ 
+    return wrap;
+  }
+ 
+  function renderClosedValue(field) {
+    const s = state[field];
+    const input = dom.input(field);
+    input.value = isMulti(field) ? s.selected.join(", ") : s.selected;
+  }
+ 
+  function syncFormValue(field) {
+    const s = state[field];
+    const target = document.getElementById(field);
+    if (isMulti(field)) {
+      target.innerHTML = "";
+      s.selected.forEach(function (value) {
+        const option = document.createElement("option");
+        option.value = value;
+        option.selected = true;
+        target.appendChild(option);
+      });
+    } else {
+      target.value = s.selected;
+    }
+  }
+ 
+  // ------------------------------- open / close
+ 
+  function openField(field) {
+    closeAllPanels();
+ 
+    const s = state[field];
+    const input = dom.input(field);
+    s.query = "";
+    input.readOnly = false;
+    input.value = "";
+    input.placeholder = input.dataset.searchPlaceholder;
+    input.setAttribute("aria-expanded", "true");
+    dom.panel(field).hidden = false;
+    renderOptions(field);
+    input.focus();
+  }
+ 
+  function closeField(field, advance) {
+    const s = state[field];
+    const input = dom.input(field);
+    s.query = "";
+    input.readOnly = true;
+    input.placeholder = input.dataset.placeholder;
+    input.setAttribute("aria-expanded", "false");
+    dom.panel(field).hidden = true;
+    renderClosedValue(field);
+ 
+    if (advance !== false) {
+      const section = input.closest(".lodge-section");
+      if (section) updateSectionProgress(section.dataset.sectionKey);
+    }
+  }
+ 
+  function closeAllPanels() {
+    Object.keys(state).forEach(function (field) {
+      if (!dom.panel(field).hidden) closeField(field, false);
     });
   }
  
-  multiFields.forEach(function (field) {
-    renderMultiOptions(field);
-    updateMultiTrigger(field);
+  // -------------------------------------------------------------- selecting
  
-    document.querySelector(`[data-multi-trigger="${field}"]`).addEventListener("click", function (e) {
-      const panel = document.querySelector(`[data-multi-panel="${field}"]`);
-      const isOpen = !panel.hidden;
-      closeAllMultiPanels();
-      if (!isOpen) {
-        panel.hidden = false;
-        e.currentTarget.setAttribute("aria-expanded", "true");
+  function toggleOption(field, option) {
+    const s = state[field];
+ 
+    if (isMulti(field)) {
+      const at = s.selected.indexOf(option);
+      if (at >= 0) s.selected.splice(at, 1);
+      else s.selected.push(option);
+      syncFormValue(field);
+      if (childOf(field)) refreshChild(childOf(field));
+      // Stays open — re-render so the row flips black/white immediately,
+      // and Done (or clicking elsewhere) is what closes it.
+      renderOptions(field);
+      return;
+    }
+ 
+    // Single-value fields have exactly one answer, so picking it is the
+    // same act as finishing the field — close immediately, no Done needed.
+    s.selected = option;
+    syncFormValue(field);
+    if (childOf(field)) refreshChild(childOf(field));
+    closeField(field);
+  }
+ 
+  function addNewValue(field, rawValue) {
+    const value = (rawValue || "").trim();
+    if (!value) return;
+ 
+    const s = state[field];
+    const existing = s.options.find((o) => o.toLowerCase() === value.toLowerCase());
+    const canonical = existing || value;
+    if (!existing) s.options.push(canonical);
+ 
+    if (isMulti(field)) {
+      if (!s.selected.includes(canonical)) s.selected.push(canonical);
+    } else {
+      s.selected = canonical;
+    }
+ 
+    // A brand-new parent starts with an empty child list; a brand-new child is
+    // filed under whichever parent is currently chosen.
+    if (NESTED[field] && !NESTED[field][canonical]) {
+      NESTED[field][canonical] = [];
+    }
+    const parent = DEPENDENTS[field];
+    if (parent) {
+      const parentValue = state[parent].selected;
+      if (parentValue) {
+        NESTED[parent][parentValue] = NESTED[parent][parentValue] || [];
+        const known = NESTED[parent][parentValue]
+          .some((v) => v.toLowerCase() === canonical.toLowerCase());
+        if (!known) NESTED[parent][parentValue].push(canonical);
+      }
+    }
+ 
+    syncFormValue(field);
+    if (childOf(field)) refreshChild(childOf(field));
+ 
+    if (isMulti(field)) {
+      const input = dom.input(field);
+      s.query = "";
+      input.value = "";
+      renderOptions(field);
+      input.focus();
+    } else {
+      closeField(field);
+    }
+  }
+ 
+  function refreshChild(child) {
+    const parent = DEPENDENTS[child];
+    const parentValue = state[parent].selected;
+    const s = state[child];
+ 
+    s.options = parentValue ? (NESTED[parent][parentValue] || []).slice() : [];
+    s.selected = "";
+    s.query = "";
+    syncFormValue(child);
+ 
+    const input = dom.input(child);
+    input.dataset.placeholder = parentValue
+      ? input.dataset.searchPlaceholder.replace(/^Search /, "Select ").replace(/…$/, "")
+      : `Choose a ${parent.replace(/_/g, " ")} first`;
+    input.placeholder = input.dataset.placeholder;
+    renderClosedValue(child);
+    renderOptions(child);
+  }
+ 
+  // ------------------------------------------------------------------ wiring
+ 
+  function initState(field) {
+    state[field] = {
+      selected: isMulti(field) ? [] : "",
+      options: (FIELD_OPTIONS[field] || []).slice(),
+      query: ""
+    };
+    syncFormValue(field);
+    renderClosedValue(field);
+  }
+ 
+  function wireField(field) {
+    const input = dom.input(field);
+    renderOptions(field);
+ 
+    input.addEventListener("mousedown", function (event) {
+      if (!dom.panel(field).hidden) return;
+      event.preventDefault();
+      openField(field);
+    });
+ 
+    input.addEventListener("input", function () {
+      state[field].query = input.value;
+      renderOptions(field);
+    });
+ 
+    input.addEventListener("keydown", function (event) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeField(field);
+        return;
+      }
+      if (event.key !== "Enter") return;
+ 
+      event.preventDefault();
+      const first = dom.options(field).querySelector(".dropdown__option");
+      if (first) {
+        toggleOption(field, first.textContent);
+      } else if (!CLOSED_FIELDS.has(field)) {
+        addNewValue(field, state[field].query);
       }
     });
  
-    document.querySelector(`[data-multi-done="${field}"]`).addEventListener("click", function () {
-      closeAllMultiPanels();
-    });
- 
-    const addBtn = document.querySelector(`[data-multi-add="${field}"]`);
-    if (addBtn) {
-      addBtn.addEventListener("click", function () {
-        const value = window.prompt(`Add a new ${field} option`);
-        if (!value || !value.trim()) return;
-        const hiddenSelect = getHiddenSelect(field);
-        const exists = Array.from(hiddenSelect.options).some(
-          (o) => o.value.toLowerCase() === value.trim().toLowerCase()
-        );
-        if (!exists) {
-          const opt = document.createElement("option");
-          opt.value = value.trim();
-          hiddenSelect.appendChild(opt);
-        }
-        Array.from(hiddenSelect.options).forEach(function (o) {
-          if (o.value.toLowerCase() === value.trim().toLowerCase()) o.selected = true;
-        });
-        renderMultiOptions(field);
-        updateMultiTrigger(field);
-        updateSectionProgress(sectionKeyForField(field));
+    // Single-mode fields render no Done button — they close on pick instead.
+    const doneBtn = document.querySelector(`[data-dd-done="${field}"]`);
+    if (doneBtn) {
+      doneBtn.addEventListener("mousedown", function (event) {
+        event.preventDefault();
+        closeField(field);
       });
     }
-  });
- 
-  document.addEventListener("click", function (e) {
-    if (!e.target.closest(".multi-select")) closeAllMultiPanels();
-  });
- 
-  function sectionKeyForField(field) {
-    if (field === "colour" || field === "detailing") return "identity";
-    return "wearing";
   }
  
-  //  Section auto-advance 
+  // Initialise state for every field first, so all entries in `state` exist
+  // before any event handler runs. This prevents the category→item_type
+  // dependency from throwing when category's handler calls refreshChild
+  // before item_type's state has been created.
+  try {
+    Object.keys(FIELD_OPTIONS).forEach(initState);
+    refreshChild("item_type");
+    refreshChild("location");
+    Object.keys(FIELD_OPTIONS).forEach(wireField);
+  } catch (e) {
+    console.error("Lodge form init error:", e);
+  }
+ 
+  // Capture phase, not bubble: a row's own click handler re-renders its
+  // options list synchronously (innerHTML = ""), which detaches the clicked
+  // row from the DOM before the event finishes bubbling. If this check ran
+  // on the bubble phase, event.target.closest('.dropdown') would return null
+  // for an already-detached node and wrongly treat every option click as a
+  // click "outside", closing the panel the same click was meant to use.
+  document.addEventListener("mousedown", function (event) {
+    if (!event.target.closest(".dropdown")) closeAllPanels();
+  }, true);
+ 
+  // ---- Section auto-advance ----
  
   const sectionOrder = ["identity", "wearing", "source", "usage", "emotion"];
   const sections = {};
@@ -424,144 +524,162 @@
     sections[key] = document.getElementById(`section-${key}`);
   });
  
-  const completedSections = new Set();
-  let activeSectionKey = "identity";
+  const completed = new Set();
+  let activeKey = "identity";
  
   const layout = document.getElementById("lodgeLayout");
   const plus = document.getElementById("lodgePlus");
+  const jumpsContainer = document.getElementById("lodgeJumps");
+ 
+  const chosen = (field) => state[field].selected;
+  const chosenCount = (field) => state[field].selected.length;
+  const typed = (id) => document.getElementById(id).value.trim();
  
   function isSectionComplete(key) {
     if (key === "identity") {
-      return (
-        document.getElementById("item_name").value.trim() !== "" &&
-        document.getElementById("category").value !== "" &&
-        document.getElementById("item_type").value !== "" &&
-        getSelectedValues("colour").length > 0 &&
-        getSelectedValues("detailing").length > 0
-      );
+      return typed("item_name") !== "" &&
+        chosen("category") !== "" &&
+        chosen("item_type") !== "" &&
+        chosenCount("colour") > 0 &&
+        chosenCount("detailing") > 0;
     }
     if (key === "wearing") {
-      return getSelectedValues("context").length > 0 && getSelectedValues("style").length > 0;
+      return chosenCount("context") > 0 && chosenCount("style") > 0;
     }
     if (key === "source") {
-      return (
-        document.getElementById("brand").value.trim() !== "" &&
-        document.getElementById("source_type").value !== "" &&
-        document.getElementById("source").value.trim() !== ""
-      );
+      return chosen("brand") !== "" &&
+        chosen("source_type") !== "" &&
+        chosen("purchase_method") !== "" &&
+        chosen("source") !== "" &&
+        chosen("country") !== "" &&
+        chosen("location") !== "";
     }
     if (key === "usage") {
-      const val = document.getElementById("estimated_value").value;
-      return (
-        document.getElementById("wear_frequency").value !== "" &&
-        val !== "" && Number(val) >= 0 &&
-        document.getElementById("resale_willingness").value !== ""
-      );
+      const value = typed("estimated_value");
+      return chosen("wear_frequency") !== "" &&
+        value !== "" && Number(value) >= 0 &&
+        chosen("resale_willingness") !== "";
     }
     return true;
   }
  
   function renderSectionStates() {
     sectionOrder.forEach((key) => {
-      const el = sections[key];
-      el.classList.remove("is-active", "is-complete");
-      if (key === activeSectionKey) {
-        el.classList.add("is-active");
-      } else if (completedSections.has(key)) {
-        el.classList.add("is-complete");
-      }
+      const node = sections[key];
+      if (!node) return;
+      node.classList.remove("is-active", "is-complete");
+      if (key === activeKey) node.classList.add("is-active");
+      else if (completed.has(key)) node.classList.add("is-complete");
     });
     updatePlusPosition();
+    renderJumpMarkers();
   }
  
-  function getSectionWorkingTarget(sectionEl) {
-    const openPanel = sectionEl.querySelector(".multi-select__panel:not([hidden])");
-    if (openPanel) {
-      const field = openPanel.closest(".multi-select").dataset.field;
-      return document.querySelector(`[data-multi-trigger="${field}"]`);
-    }
-    const firstField = sectionEl.querySelector("input:not([type=hidden]), select, textarea, [data-multi-trigger]");
-    if (firstField) return firstField;
-    return sectionEl;
+  // One small chevron per completed section, sitting in the aside (never
+  // affected by the section's own faded opacity, since opacity applies to a
+  // whole element and everything inside it as one composited layer — a child
+  // can't render "less faded" than its ancestor). Clicking a chevron jumps
+  // straight back to that section to edit it; from a section further down,
+  // each earlier section still has its own chevron, so you can step back
+  // through as many completed sections as you've filled in.
+  function renderJumpMarkers() {
+    if (!jumpsContainer) return;
+    jumpsContainer.innerHTML = "";
+ 
+    sectionOrder.forEach((key) => {
+      if (key === activeKey || !completed.has(key)) return;
+      const node = sections[key];
+      if (!node) return;
+ 
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "lodge-jump";
+      button.style.top = `${node.offsetTop}px`;
+      button.setAttribute("aria-label", `Back to ${key}`);
+      button.textContent = "\u25B2";
+      button.addEventListener("click", function () {
+        activeKey = key;
+        renderSectionStates();
+        recenterActiveSection();
+      });
+      jumpsContainer.appendChild(button);
+    });
   }
  
-  // Anchor the working field at a fixed point in the viewport (42% down) —
-  // consistent for every section, including short trailing ones like "emotion",
-  // so nothing ever lands noticeably above or below where the eye expects it.
-  const WORKING_ANCHOR_RATIO = 0.42;
+  function sectionWorkingTarget(node) {
+    return node.querySelector("input:not([type=hidden]), textarea") || node;
+  }
  
-  function scrollElementToWorkingCenter(targetEl) {
-    if (!targetEl) return;
-    const rect = targetEl.getBoundingClientRect();
+  // Every section anchors its working field at the same point in the viewport,
+  // so short sections don't sit noticeably lower than tall ones.
+  const ANCHOR_RATIO = 0.42;
+ 
+  function scrollToWorkingPosition(target) {
+    if (!target) return;
+    const rect = target.getBoundingClientRect();
     const absoluteTop = window.scrollY + rect.top;
-    const targetTop = absoluteTop - (window.innerHeight * WORKING_ANCHOR_RATIO) + (rect.height / 2);
-    window.scrollTo({ top: Math.max(0, targetTop), behavior: "smooth" });
+    const top = absoluteTop - (window.innerHeight * ANCHOR_RATIO) + (rect.height / 2);
+    window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
   }
  
   function recenterActiveSection() {
     requestAnimationFrame(function () {
       requestAnimationFrame(function () {
-        scrollElementToWorkingCenter(getSectionWorkingTarget(sections[activeSectionKey]));
+        scrollToWorkingPosition(sectionWorkingTarget(sections[activeKey]));
       });
     });
   }
  
   function updatePlusPosition() {
     if (!layout || !plus) return;
-    const activeEl = sections[activeSectionKey];
-    if (!activeEl) return;
-    const offset = Math.max(0, activeEl.offsetTop + (activeEl.offsetHeight / 2) - (plus.offsetHeight / 2));
+    const node = sections[activeKey];
+    if (!node) return;
+    const offset = Math.max(0, node.offsetTop + (node.offsetHeight / 2) - (plus.offsetHeight / 2));
     layout.style.setProperty("--plus-offset", `${offset}px`);
   }
  
   function updateSectionProgress(key) {
     if (isSectionComplete(key)) {
-      completedSections.add(key);
-      const idx = sectionOrder.indexOf(key);
-      const nextKey = sectionOrder[idx + 1];
-      if (nextKey && activeSectionKey === key) {
-        activeSectionKey = nextKey;
+      completed.add(key);
+      const next = sectionOrder[sectionOrder.indexOf(key) + 1];
+      if (next && activeKey === key) {
+        activeKey = next;
         renderSectionStates();
         recenterActiveSection();
         return;
       }
     } else {
-      completedSections.delete(key);
+      completed.delete(key);
     }
     renderSectionStates();
   }
  
-  // Click a greyed-out completed section to jump back and edit it
+  // Click a greyed-out completed section to go back and edit it.
   sectionOrder.forEach((key) => {
-    sections[key].addEventListener("click", function (e) {
+    sections[key].addEventListener("click", function () {
       if (sections[key].classList.contains("is-complete")) {
-        activeSectionKey = key;
+        activeKey = key;
         renderSectionStates();
         recenterActiveSection();
       }
     });
   });
  
-  // Wire up plain inputs/selects across all sections
-  document.querySelectorAll(".lodge-field input, .lodge-field select, .lodge-field textarea").forEach(function (el) {
-    const section = el.closest(".lodge-section");
-    if (!section) return;
-    const key = section.dataset.sectionKey;
-    const evt = el.tagName === "SELECT" ? "change" : "input";
-    el.addEventListener(evt, function () {
-      updateSectionProgress(key);
+  // Free-text fields advance as you type; dropdowns advance when they close.
+  document.querySelectorAll("#item_name, #estimated_value, #notes")
+    .forEach(function (node) {
+      const section = node.closest(".lodge-section");
+      if (!section) return;
+      node.addEventListener("input", () => updateSectionProgress(section.dataset.sectionKey));
     });
-  });
  
   window.addEventListener("resize", updatePlusPosition);
  
   renderSectionStates();
   window.setTimeout(updatePlusPosition, 50);
  
-  // ---- Post-submit splash 
-  // app.py redirects back here with ?added=1 after a successful save.
-  // Show the wordmark instantly (no fade-in) so it's the very first thing
-  // painted, hold briefly, then fade out onto the fresh, empty form at the top.
+  // ---- Post-submit splash ----
+ 
   const justAdded = {{ 'true' if just_added else 'false' }};
   const overlay = document.getElementById("lodgeSuccessOverlay");
  
@@ -570,7 +688,6 @@
     overlay.style.transition = "none";
     overlay.classList.add("is-visible");
  
-    // Strip ?added=1 from the URL so a refresh doesn't replay the splash.
     if (window.history && window.history.replaceState) {
       window.history.replaceState({}, "", window.location.pathname);
     }

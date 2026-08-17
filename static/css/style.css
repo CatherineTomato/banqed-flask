@@ -198,28 +198,19 @@ input[type="number"]::-webkit-inner-spin-button {
   border: 0 !important;
 }
  
-/* ==========================================================================
-   Lodge an Item : auto-advancing form
+/* ------------
+   Lodge an Item — auto-advancing form
    */
  
 .lodge-page {
   padding: var(--space-6, 32px) 40px 120px;
 }
  
-.lodge-heading {
-  max-width: 640px;
-  margin: 0 auto 8px auto;
-  margin-right: 40px;
-  font-size: 34px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-}
- 
 .lodge-layout {
   position: relative;
   display: flex;
   justify-content: flex-end;
-  max-width: 1200px;
+  max-width: 1800px;
   margin: 0 auto;
 }
  
@@ -228,6 +219,13 @@ input[type="number"]::-webkit-inner-spin-button {
   width: 96px;
   flex: 0 0 96px;
   pointer-events: none;
+}
+ 
+.lodge-layout__main {
+  width: 75%;
+  max-width: 1500px;
+  min-width: 0;
+  margin-right: 40px;
 }
  
 .lodge-plus {
@@ -243,10 +241,46 @@ input[type="number"]::-webkit-inner-spin-button {
   transition: top 0.3s ease;
 }
  
+.lodge-jumps {
+  position: relative;
+  pointer-events: none;
+}
+ 
+/* One per completed section, sitting in the aside where the section's own
+   faded opacity can't touch it — always fully legible, always clickable. */
+.lodge-jump {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink-55);
+  font-size: 11px;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+ 
+.lodge-jump:hover {
+  color: var(--ink);
+  border-color: var(--ink);
+  background: var(--paper);
+}
+ 
+.lodge-heading {
+  margin: 0 0 8px 0;
+  font-size: 34px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+ 
 .lodge-form {
   width: 100%;
-  max-width: 640px;
-  margin: 0 40px 0 0;
   display: grid;
   gap: 0;
 }
@@ -323,63 +357,129 @@ input[type="number"]::-webkit-inner-spin-button {
 .lodge-field input,
 .lodge-field select,
 .lodge-field textarea {
-  padding: 11px;
+  padding: 12px 14px;
   border: 1px solid var(--border);
   background: #fff;
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: 15px;
+  line-height: 1.3;
+  color: var(--ink);
   width: 100%;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+ 
+.lodge-field input:hover,
+.lodge-field textarea:hover {
+  border-color: var(--ink-55);
+}
+ 
+.lodge-field input:focus,
+.lodge-field textarea:focus {
+  border-color: var(--ink);
 }
  
 .lodge-field textarea {
   resize: vertical;
 }
  
-/* Custom multi-select (colour, detailing, context, style) */
+/* 
+   Dropdown — one component for every categorical field on the lodge form
  
-.multi-select {
+   Closed, the control reads "Select category". Opened, the same box becomes
+   the search field, so there is only ever one box per field on screen which
+   is clearer and also will make the lodge item flow easier and hopefully feel
+   quicker for the user .
+  */
+ 
+.dropdown {
   position: relative;
 }
  
-.multi-select__trigger {
+.dropdown__control {
+  position: relative;
+  display: block;
+}
+ 
+.dropdown__input {
   width: 100%;
-  text-align: left;
-  padding: 11px;
+  padding: 12px 40px 12px 14px;
   border: 1px solid var(--border);
   background: #fff;
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: 15px;
+  line-height: 1.3;
   color: var(--ink);
   cursor: pointer;
+  outline: none;
+  text-overflow: ellipsis;
+  transition: border-color 0.15s ease;
 }
  
-.multi-select__trigger:after {
-  content: "\2195";
-  float: right;
+.dropdown__input::placeholder {
   color: var(--ink-55);
 }
  
-.multi-select__panel {
+.dropdown__input:hover {
+  border-color: var(--ink-55);
+}
+ 
+/* Open: the box is a live search field, so it reads as text entry. */
+.dropdown__input:not([readonly]) {
+  cursor: text;
+  border-color: var(--ink);
+}
+ 
+.dropdown__input[aria-expanded="true"] {
+  border-color: var(--ink);
+}
+ 
+.dropdown__chevron {
   position: absolute;
-  z-index: 20;
-  top: calc(100% + 4px);
+  top: 50%;
+  right: 16px;
+  width: 7px;
+  height: 7px;
+  margin-top: -5px;
+  border-right: 1.5px solid var(--ink);
+  border-bottom: 1.5px solid var(--ink);
+  transform: rotate(45deg);
+  transition: transform 0.18s ease;
+  pointer-events: none;
+}
+ 
+.dropdown__input[aria-expanded="true"] ~ .dropdown__chevron {
+  transform: rotate(-135deg);
+  margin-top: -2px;
+}
+ 
+.dropdown__panel {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% - 1px);
   left: 0;
   right: 0;
   background: #fff;
-  border: 1px solid var(--border);
-  max-height: 260px;
+  border: 1px solid var(--ink);
+  max-height: 300px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 28px rgba(26, 26, 26, 0.10);
 }
  
-.multi-select__options {
+/* An author `display` rule beats the browser's own [hidden] rule, so the
+   hidden state has to be restated here or every panel renders at once. */
+.dropdown__panel[hidden] {
+  display: none;
+}
+ 
+.dropdown__options {
+  flex: 1 1 auto;
   overflow-y: auto;
-  padding: 0;
+  overscroll-behavior: contain;
 }
  
-.multi-select__option {
-  display: block;
+.dropdown__option {
   padding: 11px 14px;
   font-size: 14px;
   cursor: pointer;
@@ -388,55 +488,92 @@ input[type="number"]::-webkit-inner-spin-button {
   user-select: none;
 }
  
-.multi-select__option:last-child {
+.dropdown__option:last-child {
   border-bottom: none;
 }
  
-.multi-select__option:hover {
+.dropdown__option:hover {
   background: var(--paper);
 }
  
-.multi-select__option.is-selected {
+.dropdown__option.is-selected {
   background: var(--ink);
   color: var(--cream);
 }
  
-.multi-select__footer {
+.dropdown__hint {
+  padding: 16px 14px;
+  font-size: 13px;
+  color: var(--ink-55);
+}
+ 
+/* Empty search result: the only place a new value can be added. */
+.dropdown__empty {
+  padding: 16px 14px;
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+}
+ 
+.dropdown__emptytext {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ink-55);
+}
+ 
+.dropdown__addnew {
+  padding: 9px 18px;
+  border: none;
+  background: var(--ink);
+  color: var(--cream);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: opacity 0.12s ease;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+ 
+.dropdown__addnew:hover {
+  opacity: 0.88;
+}
+ 
+.dropdown__addnote {
+  margin: -4px 0 0 0;
+  font-size: 11px;
+  color: var(--ink-55);
+  font-style: italic;
+}
+ 
+.dropdown__footer {
+  flex: 0 0 auto;
   display: flex;
-  gap: 8px;
   padding: 8px;
   border-top: 1px solid var(--border);
 }
  
-.multi-select__add {
+.dropdown__done {
   flex: 1;
-  padding: 8px;
-  border: 1px solid var(--border);
-  background: #fff;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  cursor: pointer;
-}
- 
-.multi-select__add:hover {
-  background: var(--paper);
-}
- 
-.multi-select__done {
-  padding: 8px 16px;
+  padding: 9px;
   border: none;
   background: var(--ink);
   color: var(--cream);
+  font-family: var(--font-sans);
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-weight: 700;
   cursor: pointer;
+  transition: opacity 0.12s ease;
 }
  
-.multi-select__done:hover {
-  opacity: 0.9;
+.dropdown__done:hover {
+  opacity: 0.88;
 }
  
 .lodge-actions {
@@ -467,7 +604,8 @@ input[type="number"]::-webkit-inner-spin-button {
   color: var(--ink-55);
 }
  
-/* Success overlay  logo splash between one lodged item and the next */
+/* Success overlay: logo splash between one lodged item and the next,
+// need to figure how to make it the image of the logo */
  
 .lodge-success-overlay {
   position: fixed;
@@ -510,21 +648,25 @@ input[type="number"]::-webkit-inner-spin-button {
  
 /* Responsive */
  
+@media (max-width: 1400px) {
+  .lodge-layout__main {
+    width: 82%;
+  }
+}
+ 
 @media (max-width: 1000px) {
   .lodge-layout__aside {
     display: none;
-  }
- 
-  .lodge-form {
-    margin: 0 auto;
   }
  
   .lodge-layout {
     justify-content: center;
   }
  
-  .lodge-heading {
-    margin-right: auto;
+  .lodge-layout__main {
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
   }
 }
  
@@ -545,7 +687,7 @@ input[type="number"]::-webkit-inner-spin-button {
     font-size: 22px;
   }
  
-  .lodge-form {
+  .lodge-layout__main {
     max-width: 100%;
   }
  
