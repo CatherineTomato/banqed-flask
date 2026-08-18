@@ -701,3 +701,510 @@ input[type="number"]::-webkit-inner-spin-button {
     margin-left: 0;
   }
 }
+
+* ==========================================================================
+   Ledger pages — Wardrobe and Sales
+   ========== */
+ 
+.page {
+  padding: 40px 40px 120px;
+  max-width: 1800px;
+  margin: 0 auto;
+}
+ 
+.page__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 40px;
+  flex-wrap: wrap;
+  padding-bottom: 32px;
+}
+ 
+.page__title h1 {
+  margin: 0 0 12px;
+  font-size: clamp(40px, 6vw, 76px);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 0.92;
+}
+ 
+.page__stats {
+  margin: 0;
+  font-size: 15px;
+  color: var(--ink-55);
+}
+ 
+.page__stats strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+ 
+.page__stat-gap {
+  display: inline-block;
+  width: 28px;
+}
+ 
+/* Sales summary figures, set as a small ledger rather than big stat cards */
+.page__ledger {
+  margin: 0;
+  display: grid;
+  gap: 4px;
+  font-size: 14px;
+}
+ 
+.page__ledger > div {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+}
+ 
+.page__ledger dt {
+  color: var(--ink-55);
+  min-width: 220px;
+}
+ 
+.page__ledger dd {
+  margin: 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+ 
+/* Controls */
+ 
+.controls {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+ 
+.control {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  padding: 11px 14px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+ 
+.control:hover,
+.control:focus {
+  border-color: var(--ink);
+}
+ 
+.control--search {
+  min-width: 240px;
+}
+ 
+.control--button,
+.control--select {
+  cursor: pointer;
+}
+ 
+.control--number {
+  width: 110px;
+}
+ 
+.control--add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  font-size: 20px;
+  line-height: 1;
+  text-decoration: none;
+  background: var(--ink);
+  color: var(--cream);
+  border-color: var(--ink);
+}
+ 
+.control--add:hover {
+  opacity: 0.9;
+  border-color: var(--ink);
+}
+ 
+/* Filter panel */
+ 
+.filter-panel {
+  border: 1px solid var(--border);
+  background: #fff;
+  padding: 16px;
+  margin-bottom: 16px;
+  display: grid;
+  gap: 12px;
+}
+ 
+.filter-panel[hidden] {
+  display: none;
+}
+ 
+.filter-panel__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+ 
+.filter-panel__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-55);
+}
+ 
+.filter-panel__dash {
+  color: var(--ink-55);
+}
+ 
+.switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+ 
+/* Filter tokens */
+ 
+.tokens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+ 
+.tokens[hidden] {
+  display: none;
+}
+ 
+.token {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 12px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--cream);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+ 
+.token__x {
+  opacity: 0.7;
+  font-size: 14px;
+  line-height: 1;
+}
+ 
+.token:hover .token__x {
+  opacity: 1;
+}
+ 
+/* The ledger table */
+ 
+.table-scroll {
+  overflow-x: auto;
+  border-top: 2px solid var(--ink);
+}
+ 
+.ledger {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+ 
+.ledger thead th {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--paper);
+  padding: 16px 14px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+ 
+.ledger tbody td {
+  padding: 18px 14px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+ 
+.ledger tbody tr[data-row]:hover td {
+  background: rgba(26, 26, 26, 0.02);
+}
+ 
+/* Item name column stays put while the rest scrolls sideways */
+.ledger__sticky {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--paper);
+  min-width: 260px;
+  border-right: 2px solid var(--ink);
+}
+ 
+.ledger thead .ledger__sticky {
+  z-index: 4;
+}
+ 
+.ledger tbody tr[data-row]:hover .ledger__sticky {
+  background: #f2f1ec;
+}
+ 
+.ledger__name {
+  display: block;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+}
+ 
+.ledger__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+ 
+.ledger__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+ 
+.ledger__money {
+  font-weight: 700;
+  font-size: 15px;
+}
+ 
+.ledger__actions,
+.ledger__status {
+  white-space: nowrap;
+}
+ 
+/* Chips */
+ 
+.chip {
+  display: inline-block;
+  padding: 4px 9px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--ink);
+  white-space: nowrap;
+}
+ 
+/* Row controls */
+ 
+.row-action,
+.row-expand {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  padding: 7px 14px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink-55);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+ 
+.row-action:hover,
+.row-expand:hover {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+ 
+.row-expand {
+  margin-top: 10px;
+  padding: 3px 12px;
+  font-size: 11px;
+  line-height: 1.4;
+}
+ 
+.is-editing .row-action {
+  background: var(--ink);
+  color: var(--cream);
+  border-color: var(--ink);
+}
+ 
+.row-note {
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-55);
+}
+ 
+.row-note.is-error {
+  color: #b3261e;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 12px;
+}
+ 
+/* Inline edit mode: read cells and edit cells swap */
+ 
+.cell-edit {
+  display: none;
+}
+ 
+.is-editing .cell-read {
+  display: none;
+}
+ 
+.is-editing .cell-edit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+ 
+.cell-input {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+  outline: none;
+  min-width: 0;
+  width: 100%;
+}
+ 
+.cell-input:focus {
+  border-color: var(--ink);
+}
+ 
+.cell-input--num {
+  text-align: right;
+  max-width: 110px;
+}
+ 
+.cell-input--date {
+  max-width: 160px;
+}
+ 
+/* Status dropdown on Sales */
+ 
+.status-select {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  outline: none;
+  min-width: 170px;
+  transition: border-color 0.15s ease;
+}
+ 
+.status-select:hover,
+.status-select:focus {
+  border-color: var(--ink);
+}
+ 
+.status-select.is-done {
+  background: var(--ink);
+  color: var(--cream);
+  border-color: var(--ink);
+}
+ 
+/* Expandable wardrobe detail beneath a sales row */
+ 
+.detail-row[hidden] {
+  display: none;
+}
+ 
+.detail-row td {
+  background: #f2f1ec;
+  padding: 24px 14px 28px 24px;
+  border-bottom: 1px solid var(--border);
+}
+ 
+.detail {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px 32px;
+}
+ 
+.detail dt {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-55);
+  margin-bottom: 8px;
+}
+ 
+.detail dd {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+ 
+.detail__money {
+  font-weight: 700;
+  font-size: 18px;
+}
+ 
+/* A row leaving because it crossed to the other page */
+ 
+tr.is-leaving {
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+ 
+.empty {
+  padding: 48px 14px;
+  text-align: center;
+  color: var(--ink-55);
+  font-size: 14px;
+}
+ 
+.empty[hidden] {
+  display: none;
+}
+ 
+/* Responsive */
+ 
+@media (max-width: 900px) {
+  .page {
+    padding: 24px 16px 100px;
+  }
+ 
+  .page__head {
+    gap: 24px;
+    padding-bottom: 24px;
+  }
+ 
+  .controls {
+    width: 100%;
+  }
+ 
+  .control--search {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+ 
+  .ledger__sticky {
+    min-width: 180px;
+  }
+ 
+  .page__ledger dt {
+    min-width: 0;
+    flex: 1;
+  }
+}
