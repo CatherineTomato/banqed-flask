@@ -702,9 +702,9 @@ input[type="number"]::-webkit-inner-spin-button {
   }
 }
 
-* ==========================================================================
+/* ==========================================================================
    Ledger pages — Wardrobe and Sales
-   ========== */
+   ========================================================================== */
  
 .page {
   padding: 40px 40px 120px;
@@ -718,11 +718,11 @@ input[type="number"]::-webkit-inner-spin-button {
   justify-content: space-between;
   gap: 40px;
   flex-wrap: wrap;
-  padding-bottom: 32px;
+  padding-bottom: 24px;
 }
  
 .page__title h1 {
-  margin: 0 0 12px;
+  margin: 0 0 14px;
   font-size: clamp(40px, 6vw, 76px);
   font-weight: 800;
   letter-spacing: -0.035em;
@@ -738,6 +738,7 @@ input[type="number"]::-webkit-inner-spin-button {
 .page__stats strong {
   color: var(--ink);
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
  
 .page__stat-gap {
@@ -745,11 +746,11 @@ input[type="number"]::-webkit-inner-spin-button {
   width: 28px;
 }
  
-/* Sales summary figures, set as a small ledger rather than big stat cards */
+/* Sales figures set as a small ledger rather than large stat cards */
 .page__ledger {
   margin: 0;
   display: grid;
-  gap: 4px;
+  gap: 5px;
   font-size: 14px;
 }
  
@@ -762,6 +763,11 @@ input[type="number"]::-webkit-inner-spin-button {
 .page__ledger dt {
   color: var(--ink-55);
   min-width: 220px;
+}
+ 
+.page__ledger dt strong {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
 }
  
 .page__ledger dd {
@@ -782,12 +788,12 @@ input[type="number"]::-webkit-inner-spin-button {
 .control {
   font-family: var(--font-sans);
   font-size: 14px;
-  padding: 11px 14px;
+  padding: 12px 14px;
   border: 1px solid var(--border);
   background: #fff;
   color: var(--ink);
   outline: none;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
  
 .control:hover,
@@ -799,9 +805,30 @@ input[type="number"]::-webkit-inner-spin-button {
   min-width: 240px;
 }
  
-.control--button,
-.control--select {
+.control--button {
   cursor: pointer;
+}
+ 
+.control--button.is-open {
+  background: var(--ink);
+  color: var(--cream);
+  border-color: var(--ink);
+}
+ 
+.control--primary {
+  background: var(--ink);
+  color: var(--cream);
+  border-color: var(--ink);
+  font-weight: 700;
+}
+ 
+.control--primary:hover {
+  opacity: 0.9;
+  border-color: var(--ink);
+}
+ 
+.control--quiet {
+  color: var(--ink-55);
 }
  
 .control--number {
@@ -812,7 +839,7 @@ input[type="number"]::-webkit-inner-spin-button {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
+  width: 46px;
   font-size: 20px;
   line-height: 1;
   text-decoration: none;
@@ -826,15 +853,51 @@ input[type="number"]::-webkit-inner-spin-button {
   border-color: var(--ink);
 }
  
+/* Hosts for BanqDropdown — the same control the lodge form uses */
+ 
+.control-menu {
+  min-width: 200px;
+}
+ 
+.control-menu--field {
+  min-width: 200px;
+}
+ 
+.control-menu--value {
+  min-width: 260px;
+  flex: 1;
+}
+ 
+.control-menu--status {
+  min-width: 190px;
+}
+ 
+.control-menu .dropdown__input {
+  font-size: 14px;
+  padding: 12px 38px 12px 14px;
+}
+ 
+/* A sold row's status reads as settled rather than pending */
+.control-menu--status.is-done .dropdown__input {
+  background: var(--ink);
+  color: var(--cream);
+  border-color: var(--ink);
+  font-weight: 700;
+}
+ 
+.control-menu--status.is-done .dropdown__chevron {
+  border-color: var(--cream);
+}
+ 
 /* Filter panel */
  
 .filter-panel {
   border: 1px solid var(--border);
   background: #fff;
-  padding: 16px;
-  margin-bottom: 16px;
+  padding: 18px;
+  margin-bottom: 18px;
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
  
 .filter-panel[hidden] {
@@ -867,7 +930,8 @@ input[type="number"]::-webkit-inner-spin-button {
   cursor: pointer;
 }
  
-/* Filter tokens */
+/* Applied filter tokens, sitting above the rule that divides the figures
+   from the table so the two read together. */
  
 .tokens {
   display: flex;
@@ -884,7 +948,7 @@ input[type="number"]::-webkit-inner-spin-button {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  padding: 7px 12px;
+  padding: 8px 13px;
   border: 1px solid var(--ink);
   background: var(--ink);
   color: var(--cream);
@@ -892,16 +956,17 @@ input[type="number"]::-webkit-inner-spin-button {
   font-size: 12px;
   letter-spacing: 0.02em;
   cursor: pointer;
+  transition: opacity 0.12s ease;
+}
+ 
+.token:hover {
+  opacity: 0.85;
 }
  
 .token__x {
   opacity: 0.7;
   font-size: 14px;
   line-height: 1;
-}
- 
-.token:hover .token__x {
-  opacity: 1;
 }
  
 /* The ledger table */
@@ -926,7 +991,6 @@ input[type="number"]::-webkit-inner-spin-button {
   text-align: left;
   font-size: 11px;
   font-weight: 700;
-  text-transform: none;
   letter-spacing: 0.02em;
   color: var(--ink);
   border-bottom: 1px solid var(--border);
@@ -943,13 +1007,25 @@ input[type="number"]::-webkit-inner-spin-button {
   background: rgba(26, 26, 26, 0.02);
 }
  
+/* Columns holding one short value shouldn't claim the same width as
+   columns holding several chips — this is what left the gap by Brand. */
+.ledger__tight {
+  width: 1%;
+  white-space: nowrap;
+}
+ 
+.ledger__date {
+  width: 1%;
+  white-space: nowrap;
+}
+ 
 /* Item name column stays put while the rest scrolls sideways */
 .ledger__sticky {
   position: sticky;
   left: 0;
   z-index: 2;
   background: var(--paper);
-  min-width: 260px;
+  min-width: 250px;
   border-right: 2px solid var(--ink);
 }
  
@@ -991,6 +1067,10 @@ input[type="number"]::-webkit-inner-spin-button {
   white-space: nowrap;
 }
  
+.ledger__actions {
+  width: 1%;
+}
+ 
 /* Chips */
  
 .chip {
@@ -1006,35 +1086,67 @@ input[type="number"]::-webkit-inner-spin-button {
  
 /* Row controls */
  
-.row-action,
-.row-expand {
+.row-action {
   font-family: var(--font-sans);
   font-size: 12px;
-  padding: 7px 14px;
+  padding: 8px 16px;
   border: 1px solid var(--border);
   background: #fff;
+  color: var(--ink-55);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+ 
+.row-action:hover {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+ 
+.row-action.is-active {
+  background: var(--ink);
+  color: var(--cream);
+  border-color: var(--ink);
+  font-weight: 700;
+}
+ 
+.row-expand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 5px 11px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--ink-55);
   cursor: pointer;
   transition: color 0.15s ease, border-color 0.15s ease;
 }
  
-.row-action:hover,
 .row-expand:hover {
   color: var(--ink);
   border-color: var(--ink);
 }
  
-.row-expand {
-  margin-top: 10px;
-  padding: 3px 12px;
-  font-size: 11px;
-  line-height: 1.4;
+.row-expand__chevron {
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 0.18s ease;
 }
  
-.is-editing .row-action {
-  background: var(--ink);
-  color: var(--cream);
+.row-expand.is-open {
+  color: var(--ink);
   border-color: var(--ink);
+}
+ 
+.row-expand.is-open .row-expand__chevron {
+  transform: translateY(1px) rotate(-135deg);
 }
  
 .row-note {
@@ -1072,13 +1184,17 @@ input[type="number"]::-webkit-inner-spin-button {
 .cell-input {
   font-family: var(--font-sans);
   font-size: 13px;
-  padding: 7px 9px;
+  padding: 8px 10px;
   border: 1px solid var(--border);
   background: #fff;
   color: var(--ink);
   outline: none;
   min-width: 0;
   width: 100%;
+}
+ 
+.cell-input:hover {
+  border-color: var(--ink-55);
 }
  
 .cell-input:focus {
@@ -1091,34 +1207,7 @@ input[type="number"]::-webkit-inner-spin-button {
 }
  
 .cell-input--date {
-  max-width: 160px;
-}
- 
-/* Status dropdown on Sales */
- 
-.status-select {
-  font-family: var(--font-sans);
-  font-size: 13px;
-  font-weight: 700;
-  padding: 9px 12px;
-  border: 1px solid var(--border);
-  background: #fff;
-  color: var(--ink);
-  cursor: pointer;
-  outline: none;
-  min-width: 170px;
-  transition: border-color 0.15s ease;
-}
- 
-.status-select:hover,
-.status-select:focus {
-  border-color: var(--ink);
-}
- 
-.status-select.is-done {
-  background: var(--ink);
-  color: var(--cream);
-  border-color: var(--ink);
+  max-width: 150px;
 }
  
 /* Expandable wardrobe detail beneath a sales row */
@@ -1129,7 +1218,7 @@ input[type="number"]::-webkit-inner-spin-button {
  
 .detail-row td {
   background: #f2f1ec;
-  padding: 24px 14px 28px 24px;
+  padding: 26px 14px 30px 24px;
   border-bottom: 1px solid var(--border);
 }
  
@@ -1137,7 +1226,7 @@ input[type="number"]::-webkit-inner-spin-button {
   margin: 0;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 20px 32px;
+  gap: 22px 32px;
 }
  
 .detail dt {
@@ -1187,7 +1276,7 @@ tr.is-leaving {
  
   .page__head {
     gap: 24px;
-    padding-bottom: 24px;
+    padding-bottom: 20px;
   }
  
   .controls {
@@ -1197,6 +1286,13 @@ tr.is-leaving {
   .control--search {
     flex: 1 1 100%;
     min-width: 0;
+  }
+ 
+  .control-menu,
+  .control-menu--field,
+  .control-menu--value {
+    min-width: 0;
+    flex: 1 1 100%;
   }
  
   .ledger__sticky {

@@ -1,32 +1,206 @@
 {% extends "base.html" %}
-
+ 
+{% macro chips(value) %}
+  {%- for part in (value or '').split(',') if part.strip() %}
+  <span class="chip">{{ part.strip() }}</span>
+  {%- endfor %}
+{% endmacro %}
+ 
+{% macro edit_select(item, field, options) %}
+<select class="cell-input" data-field="{{ field }}">
+  <option value=""></option>
+  {% for option in options %}
+  <option value="{{ option }}" {% if (item[field] or '') == option %}selected{% endif %}>{{ option }}</option>
+  {% endfor %}
+</select>
+{% endmacro %}
+ 
+{% set filter_fields = [
+  {'field': 'category', 'label': 'Category'},
+  {'field': 'item_type', 'label': 'Item type'},
+  {'field': 'colour', 'label': 'Colour'},
+  {'field': 'detailing', 'label': 'Detailing'},
+  {'field': 'context', 'label': 'Context'},
+  {'field': 'style', 'label': 'Style'},
+  {'field': 'brand', 'label': 'Brand'},
+  {'field': 'source_type', 'label': 'Source type'},
+  {'field': 'purchase_method', 'label': 'Purchase method'},
+  {'field': 'source', 'label': 'Source'},
+  {'field': 'country', 'label': 'Country'},
+  {'field': 'location', 'label': 'Location'},
+  {'field': 'wear_frequency', 'label': 'Wear frequency'},
+  {'field': 'resale_willingness', 'label': 'Resale willingness'},
+  {'field': 'item_rating', 'label': 'Item rating'}
+] %}
+ 
 {% block content %}
-<h1>Wardrobe Banq</h1>
-
-<input type="text" class="table-search" data-table="wardrobeTable" placeholder="Search wardrobe...">
-
-<table id="wardrobeTable">
-  <thead>
-    <tr>
-      <th>Item</th>
-      <th>Category</th>
-      <th>Colour</th>
-      <th>Wear Frequency</th>
-      <th>Est. Value</th>
-      <th>Resale</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for item in items %}
-    <tr>
-      <td>{{ item.item_name }}</td>
-      <td>{{ item.category }}</td>
-      <td>{{ item.colour }}</td>
-      <td>{{ item.wear_frequency }}</td>
-      <td>{{ item.estimated_value }}</td>
-      <td>{{ item.resale_willingness }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div class="page" data-table-root data-page="wardrobe"
+     data-filter-fields='{{ filter_fields|tojson }}'
+     data-sale-statuses='{{ sale_statuses|tojson }}'
+     data-field-options='{{ {
+       "category": field_options.category,
+       "item_type": item_types,
+       "colour": field_options.colour,
+       "detailing": field_options.detailing,
+       "context": field_options.context,
+       "style": field_options.style,
+       "brand": field_options.brand,
+       "source_type": field_options.source_type,
+       "purchase_method": field_options.purchase_method,
+       "source": field_options.source,
+       "country": field_options.country,
+       "location": field_options.location,
+       "wear_frequency": field_options.wear_frequency,
+       "resale_willingness": field_options.resale_willingness,
+       "item_rating": field_options.item_rating
+     }|tojson }}'>
+ 
+  <header class="page__head">
+    <div class="page__title">
+      <h1>Wardrobe</h1>
+      <p class="page__stats">
+        <strong data-count>{{ items|length }}</strong> items
+        <span class="page__stat-gap"></span>
+        <strong data-total-value>&euro;{{ '{:,.0f}'.format(total_value) }}</strong> estimated resale value
+      </p>
+    </div>
+ 
+    <div class="controls">
+      <input type="search" class="control control--search" data-search
+             placeholder="Search wardrobe" aria-label="Search wardrobe" autocomplete="off">
+      <button type="button" class="control control--button" data-filter-trigger aria-expanded="false">Filter</button>
+      <div class="control-menu" data-sort></div>
+      <a href="{{ url_for('lodge_item') }}" class="control control--add" aria-label="Lodge an item">+</a>
+    </div>
+  </header>
+ 
+  <div class="filter-panel" data-filter-panel hidden>
+    <div class="filter-panel__row">
+      <span class="filter-panel__label">Where</span>
+      <div class="control-menu control-menu--field" data-filter-field></div>
+      <span class="filter-panel__label">is</span>
+      <div class="control-menu control-menu--value" data-filter-value></div>
+      <button type="button" class="control control--button control--primary" data-filter-add>Add filter</button>
+    </div>
+ 
+    <div class="filter-panel__row">
+      <span class="filter-panel__label">Est. value</span>
+      <input type="number" class="control control--number" data-filter-min placeholder="Min" min="0" aria-label="Minimum value">
+      <span class="filter-panel__dash">&ndash;</span>
+      <input type="number" class="control control--number" data-filter-max placeholder="Max" min="0" aria-label="Maximum value">
+      <button type="button" class="control control--button" data-filter-range-apply>Apply range</button>
+      <button type="button" class="control control--button control--quiet" data-filter-clear>Clear all</button>
+    </div>
+  </div>
+ 
+  <!-- Applied filters sit here, above the rule that divides the figures
+       from the table, so what you filtered and what it totals read together. -->
+  <div class="tokens" data-tokens hidden></div>
+ 
+  <div class="table-scroll">
+    <table class="ledger">
+      <thead>
+        <tr>
+          <th class="ledger__sticky">Item</th>
+          <th>Colour</th>
+          <th>Detail</th>
+          <th>Context</th>
+          <th>Style</th>
+          <th class="ledger__tight">Brand</th>
+          <th>Source</th>
+          <th>Wear frequency</th>
+          <th>Resale willingness</th>
+          <th>How do you feel about it?</th>
+          <th class="ledger__num">Est. resale value</th>
+          <th class="ledger__actions"><span class="visually-hidden">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody data-rows>
+        {% for item in items %}
+        <tr data-row data-id="{{ item.id }}"
+            data-item-name="{{ item.item_name }}"
+            data-category="{{ item.category or '' }}"
+            data-item-type="{{ item.item_type or '' }}"
+            data-colour="{{ item.split('colour')|join('|') }}"
+            data-detailing="{{ item.split('detailing')|join('|') }}"
+            data-context="{{ item.split('context')|join('|') }}"
+            data-style="{{ item.split('style')|join('|') }}"
+            data-brand="{{ item.brand or '' }}"
+            data-source-type="{{ item.source_type or '' }}"
+            data-purchase-method="{{ item.purchase_method or '' }}"
+            data-source="{{ item.source or '' }}"
+            data-country="{{ item.country or '' }}"
+            data-location="{{ item.location or '' }}"
+            data-wear-frequency="{{ item.wear_frequency or '' }}"
+            data-resale-willingness="{{ item.resale_willingness or '' }}"
+            data-item-rating="{{ item.item_rating or '' }}"
+            data-estimated-value="{{ item.estimated_value or 0 }}"
+            data-is-sold="false"
+            data-search-blob="{{ [item.item_name, item.category, item.item_type, item.colour, item.detailing, item.context, item.style, item.brand, item.source, item.country, item.location, item.notes]|select|join(' ')|lower }}">
+ 
+          <td class="ledger__sticky">
+            <span class="cell-read ledger__name">{{ item.item_name }}</span>
+            <span class="cell-edit">
+              <input type="text" class="cell-input" data-field="item_name" value="{{ item.item_name }}" aria-label="Item name">
+            </span>
+            <span class="ledger__chips">
+              <span class="cell-read">{{ chips(item.category) }}{{ chips(item.item_type) }}</span>
+              <span class="cell-edit">
+                {{ edit_select(item, 'category', field_options.category) }}
+                {{ edit_select(item, 'item_type', item_types) }}
+              </span>
+            </span>
+            <span class="row-note" data-row-note hidden></span>
+          </td>
+ 
+          <td><span class="cell-read">{{ chips(item.colour) }}</span>
+              <span class="cell-edit"><input type="text" class="cell-input" data-field="colour" value="{{ item.colour or '' }}" aria-label="Colour"></span></td>
+ 
+          <td><span class="cell-read">{{ chips(item.detailing) }}</span>
+              <span class="cell-edit"><input type="text" class="cell-input" data-field="detailing" value="{{ item.detailing or '' }}" aria-label="Detailing"></span></td>
+ 
+          <td><span class="cell-read">{{ chips(item.context) }}</span>
+              <span class="cell-edit"><input type="text" class="cell-input" data-field="context" value="{{ item.context or '' }}" aria-label="Context"></span></td>
+ 
+          <td><span class="cell-read">{{ chips(item.style) }}</span>
+              <span class="cell-edit"><input type="text" class="cell-input" data-field="style" value="{{ item.style or '' }}" aria-label="Style"></span></td>
+ 
+          <td class="ledger__tight"><span class="cell-read">{{ chips(item.brand) }}</span>
+              <span class="cell-edit">{{ edit_select(item, 'brand', field_options.brand) }}</span></td>
+ 
+          <td>
+            <span class="cell-read">{{ chips(item.source) }}{{ chips(item.location) }}</span>
+            <span class="cell-edit">
+              {{ edit_select(item, 'source', field_options.source) }}
+              {{ edit_select(item, 'location', field_options.location) }}
+            </span>
+          </td>
+ 
+          <td><span class="cell-read">{{ chips(item.wear_frequency) }}</span>
+              <span class="cell-edit">{{ edit_select(item, 'wear_frequency', field_options.wear_frequency) }}</span></td>
+ 
+          <td><span class="cell-read">{{ chips(item.resale_willingness) }}</span>
+              <span class="cell-edit">{{ edit_select(item, 'resale_willingness', field_options.resale_willingness) }}</span></td>
+ 
+          <td><span class="cell-read">{{ chips(item.item_rating) }}</span>
+              <span class="cell-edit">{{ edit_select(item, 'item_rating', field_options.item_rating) }}</span></td>
+ 
+          <td class="ledger__num">
+            <span class="cell-read ledger__money">&euro;{{ '{:,.0f}'.format(item.estimated_value or 0) }}</span>
+            <span class="cell-edit"><input type="number" step="0.01" min="0" class="cell-input cell-input--num" data-field="estimated_value" value="{{ item.estimated_value or '' }}" aria-label="Estimated value"></span>
+          </td>
+ 
+          <td class="ledger__actions">
+            <button type="button" class="row-action" data-edit-toggle aria-label="Edit this item">Edit</button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+ 
+    <p class="empty" data-empty hidden>Nothing matches those filters.</p>
+  </div>
+</div>
+ 
+<script src="{{ url_for('static', filename='js/banq_table.js') }}"></script>
 {% endblock %}

@@ -1,13 +1,16 @@
-from flask import Flask, render_template, request, redirect, url_for
-from models import db, Item, SaleListing
-from options import (
-    SEED_OPTIONS,
-    SEED_CATEGORY_TYPES,
-    SEED_COUNTRY_CITIES,
-    CLOSED_FIELDS,
-    merge_options,
-)
+from datetime import date, datetime
+ 
+from flask import Flask, jsonify, redirect, render_template, request, url_for
 from sqlalchemy import func
+ 
+from models import (
+    db, Item,
+    SALES_RESALE, SOLD_STATUSES, SALE_STATUSES,
+)
+from options import (
+    SEED_OPTIONS, SEED_CATEGORY_TYPES, SEED_COUNTRY_CITIES,
+    CLOSED_FIELDS, merge_options,
+)
  
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///banqed.db"
@@ -15,8 +18,6 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
  
 db.init_app(app)
  
-# Which Item column backs each dropdown, and whether it holds a single value
-# or a comma-separated list of them.
 SINGLE_VALUE_FIELDS = {
     "category": Item.category,
     "source_type": Item.source_type,
@@ -37,6 +38,16 @@ MULTI_VALUE_FIELDS = {
     "context": Item.context,
 }
  
+# Fields a row's edit mode may write to, and how to coerce the incoming value.
+EDITABLE_TEXT = {
+    "item_name", "category", "item_type", "colour", "detailing", "style",
+    "context", "brand", "source_type", "purchase_method", "source",
+    "country", "location", "wear_frequency", "resale_willingness",
+    "item_rating", "notes", "sale_status",
+}
+EDITABLE_NUMBER = {"estimated_value", "listing_price", "sold_for"}
+EDITABLE_DATE = {"date_listed", "date_sold"}
+ 
  
 def parse_float(value):
     """Convert a form value to a float, or None if it's blank/invalid."""
@@ -46,14 +57,22 @@ def parse_float(value):
         return None
  
  
+def parse_date(value):
+    """Parse an ISO date from a date input, or None if blank/invalid."""
+    if not value:
+        return None
+    try:
+        return datetime.strptime(str(value).strip(), "%Y-%m-%d").date()
+    except ValueError:
+        return None
+ 
+ 
 def get_distinct_single(column):
-    """Every distinct non-empty value in a single-value column."""
     rows = db.session.query(column).distinct().all()
     return {r[0].strip() for r in rows if r[0] and r[0].strip()}
  
  
 def get_multi_values(column):
-    """Every distinct value from a comma-separated column, split back out."""
     rows = db.session.query(column).all()
     values = set()
     for (val,) in rows:
@@ -67,11 +86,7 @@ def get_multi_values(column):
  
  
 def build_field_options():
-    """Seeded sheet options first, then anything extra already in the database.
- 
-    Closed fields (wear frequency, resale willingness, item rating) are fixed
-    scales, so they use the seed list exactly and ignore stray database values.
-    """
+    """Seeded sheet options first, then anything extra already in the database."""
     options = {}
     for field, seed in SEED_OPTIONS.items():
         if field in CLOSED_FIELDS:
@@ -86,11 +101,7 @@ def build_field_options():
  
  
 def build_nested(seed, parent_column, child_column):
-    """Seeded parent/child pairings, plus any pairing already in the database.
- 
-    Used for category -> item types and country -> cities, which behave
-    identically: choosing the parent narrows the child's options.
-    """
+    """Seeded parent/child pairings, plus any pairing already in the database."""
     nested = {parent: list(children) for parent, children in seed.items()}
  
     rows = db.session.query(parent_column, child_column).distinct().all()
@@ -108,6 +119,11 @@ def build_nested(seed, parent_column, child_column):
     return nested
  
  
+def item_type_options():
+    """Every item type in use, for the filter menus."""
+    return sorted(get_distinct_single(Item.item_type))
+ 
+ 
 @app.route("/")
 def home():
     """Home page."""
@@ -116,16 +132,53 @@ def home():
  
 @app.route("/wardrobe")
 def wardrobe():
-    """List every item currently in the wardrobe."""
-    items = Item.query.all()
-    return render_template("wardrobe.html", items=items)
+    """Items still being kept — everything not headed for the Sales page."""
+    items = (
+        Item.query
+        .filter(~Item.resale_willingness.in_(SALES_RESALE))
+        .order_by(Item.item_name)
+        .all()
+    )
+    total_value = sum(item.estimated_value or 0 for item in items)
+ 
+    return render_template(
+        "wardrobe.html",
+        items=items,
+        total_value=total_value,
+        field_options=build_field_options(),
+        item_types=item_type_options(),
+        sale_statuses=SALE_STATUSES,
+    )
  
  
 @app.route("/sales")
 def sales():
-    """List every sale listing."""
-    listings = SaleListing.query.all()
-    return render_template("sales.html", listings=listings)
+    """Items marked for resale, with their sale progress."""
+    items = (
+        Item.query
+        .filter(Item.resale_willingness.in_(SALES_RESALE))
+        .order_by(Item.item_name)
+        .all()
+    )
+ 
+    revenue = sum(i.sold_for or 0 for i in items if i.is_sold)
+    listed_value = sum(i.listing_price or 0 for i in items if not i.is_sold)
+    rarely_worn_value = sum(
+        i.estimated_value or 0 for i in items
+        if i.wear_frequency in ("Rarely", "Never worn")
+    )
+ 
+    return render_template(
+        "sales.html",
+        items=items,
+        revenue=revenue,
+        listed_value=listed_value,
+        rarely_worn_value=rarely_worn_value,
+        field_options=build_field_options(),
+        item_types=item_type_options(),
+        sale_statuses=SALE_STATUSES,
+        sold_statuses=SOLD_STATUSES,
+    )
  
  
 @app.route("/opening-your-banq")
@@ -136,31 +189,25 @@ def opening_your_banq():
  
 @app.route("/progress")
 def progress():
-    """Compute and display wardrobe/sales totals from the live database."""
+    """Wardrobe and sales totals computed from the live database."""
     total_value = db.session.query(func.sum(Item.estimated_value)).scalar() or 0
-    # Casing here must match what's actually stored: the source spreadsheet
-    # uses "Never worn", not "Never Worn".
     rarely_worn_value = db.session.query(func.sum(Item.estimated_value)).filter(
         Item.wear_frequency.in_(["Rarely", "Never worn"])
     ).scalar() or 0
     value_to_resell = db.session.query(func.sum(Item.estimated_value)).filter(
-        Item.resale_willingness.in_(["Sell now", "Maybe sell", "Sell if price is right"])
+        Item.resale_willingness.in_(SALES_RESALE + ["Maybe sell"])
     ).scalar() or 0
  
     items_lodged = Item.query.count()
-    items_listed = SaleListing.query.count()
+    items_listed = Item.query.filter(Item.resale_willingness.in_(SALES_RESALE)).count()
+    items_sold = Item.query.filter(Item.sale_status.in_(SOLD_STATUSES)).count()
  
-    completed_statuses = ["Sold", "Posted", "Money received"]
- 
-    items_sold = SaleListing.query.filter(
-        SaleListing.status.in_(completed_statuses)
-    ).count()
- 
-    total_revenue = db.session.query(func.sum(SaleListing.sold_for)).filter(
-        SaleListing.status.in_(completed_statuses)
+    total_revenue = db.session.query(func.sum(Item.sold_for)).filter(
+        Item.sale_status.in_(SOLD_STATUSES)
     ).scalar() or 0
-    listed_value = db.session.query(func.sum(SaleListing.listing_price)).filter(
-        SaleListing.status.notin_(completed_statuses)
+    listed_value = db.session.query(func.sum(Item.listing_price)).filter(
+        Item.resale_willingness.in_(SALES_RESALE),
+        ~Item.sale_status.in_(SOLD_STATUSES),
     ).scalar() or 0
  
     return render_template(
@@ -174,6 +221,61 @@ def progress():
         total_revenue=total_revenue,
         listed_value=listed_value,
     )
+ 
+ 
+@app.route("/api/items/<int:item_id>", methods=["POST"])
+def update_item(item_id):
+    """Apply inline edits to one item and report where it now belongs.
+ 
+    The response tells the page whether the item has crossed between Wardrobe
+    and Sales, so the row can be removed without a full reload.
+    """
+    item = Item.query.get_or_404(item_id)
+    changes = request.get_json(silent=True) or {}
+    was_on_sales = item.on_sales
+ 
+    for field, value in changes.items():
+        if field in EDITABLE_TEXT:
+            setattr(item, field, (value or "").strip())
+        elif field in EDITABLE_NUMBER:
+            setattr(item, field, parse_float(value))
+        elif field in EDITABLE_DATE:
+            setattr(item, field, parse_date(value))
+ 
+    # "Keep instead" is the escape hatch on the Sales page: it sends the item
+    # back to the wardrobe rather than recording any kind of sale.
+    if changes.get("sale_status") == "Keep instead":
+        item.resale_willingness = "Keep for now"
+        item.sale_status = None
+        item.date_listed = None
+        item.date_sold = None
+        item.sold_for = None
+ 
+    # Newly headed for resale: seed the sale fields so the row is usable.
+    if item.on_sales and not was_on_sales:
+        if not item.sale_status:
+            item.sale_status = "To prep"
+        if item.listing_price is None:
+            item.listing_price = item.estimated_value
+ 
+    # Marking something sold without a date is almost always today.
+    if item.sale_status in SOLD_STATUSES and item.date_sold is None:
+        item.date_sold = date.today()
+ 
+    db.session.commit()
+ 
+    return jsonify({
+        "ok": True,
+        "id": item.id,
+        "on_sales": item.on_sales,
+        "moved": item.on_sales != was_on_sales,
+        "days_to_sell": item.days_to_sell,
+        "is_sold": item.is_sold,
+        "sale_status": item.sale_status,
+        "resale_willingness": item.resale_willingness,
+        "listing_price": item.listing_price,
+        "sold_for": item.sold_for,
+    })
  
  
 @app.route("/wardrobe/lodge", methods=["GET", "POST"])
@@ -195,6 +297,9 @@ def lodge_item():
                 error="Item name is required.",
             )
  
+        estimated_value = parse_float(request.form.get("estimated_value"))
+        resale = request.form.get("resale_willingness", "").strip()
+ 
         new_item = Item(
             item_name=item_name,
             category=request.form.get("category", "").strip(),
@@ -210,16 +315,21 @@ def lodge_item():
             country=request.form.get("country", "").strip(),
             location=request.form.get("location", "").strip(),
             wear_frequency=request.form.get("wear_frequency", "").strip(),
-            estimated_value=parse_float(request.form.get("estimated_value")),
-            resale_willingness=request.form.get("resale_willingness", "").strip(),
+            estimated_value=estimated_value,
+            resale_willingness=resale,
             item_rating=request.form.get("item_rating", "").strip(),
             notes=request.form.get("notes", "").strip(),
             ownership_status="Owned",
         )
+ 
+        # Something lodged as already-for-sale lands on the Sales page ready
+        # to work with: listing price starts at the value just entered.
+        if resale in SALES_RESALE:
+            new_item.sale_status = "To prep"
+            new_item.listing_price = estimated_value
+ 
         db.session.add(new_item)
         db.session.commit()
-        # Back to the lodge form itself so the splash can play and the form
-        # resets, ready for the next item.
         return redirect(url_for("lodge_item", added=1))
  
     return render_template(
