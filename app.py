@@ -126,8 +126,38 @@ def item_type_options():
  
 @app.route("/")
 def home():
-    """Home page."""
-    return render_template("index.html")
+    """The front page: an editorial read on what's actually in the banq.
+ 
+    The figures printed here are the real ones, computed at request time, so
+    the front page always describes the wardrobe as it currently stands
+    rather than a fixed marketing number.
+    """
+    items_catalogued = Item.query.count()
+    estimated_value = db.session.query(func.sum(Item.estimated_value)).scalar() or 0
+    never_worn = Item.query.filter(Item.wear_frequency == "Never worn").count()
+    ready_to_resell = db.session.query(func.sum(Item.estimated_value)).filter(
+        Item.resale_willingness.in_(SALES_RESALE)
+    ).scalar() or 0
+ 
+    # The most-owned category, and how much of it sits unworn — the kind of
+    # pattern the whole system exists to surface.
+    top_category = (
+        db.session.query(Item.category, func.count(Item.id))
+        .filter(Item.category.isnot(None), Item.category != "")
+        .group_by(Item.category)
+        .order_by(func.count(Item.id).desc())
+        .first()
+    )
+ 
+    return render_template(
+        "index.html",
+        items_catalogued=items_catalogued,
+        estimated_value=estimated_value,
+        never_worn=never_worn,
+        ready_to_resell=ready_to_resell,
+        top_category_name=top_category[0] if top_category else None,
+        top_category_count=top_category[1] if top_category else 0,
+    )
  
  
 @app.route("/wardrobe")
@@ -275,6 +305,8 @@ def update_item(item_id):
         "resale_willingness": item.resale_willingness,
         "listing_price": item.listing_price,
         "sold_for": item.sold_for,
+        "date_listed": item.date_listed.isoformat() if item.date_listed else None,
+        "date_sold": item.date_sold.isoformat() if item.date_sold else None,
     })
  
  

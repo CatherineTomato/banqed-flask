@@ -1,10 +1,226 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Banqed</title>
-</head>
-<body>
-  <h1>Banqed is running.</h1>
-</body>
-</html>
+{% extends "base.html" %}
+ 
+{% block content %}
+{#
+  The front page is a newspaper you click through rather than scroll.
+  Each .spread is one page; script.js shows one at a time and advances on
+  click, arrow keys, or the controls at the foot of the page.
+ 
+  The figures on the front page are the real ones, passed in by the home
+  route, so the paper always reports on the wardrobe as it currently is.
+#}
+<div class="paper" data-paper>
+ 
+  <!-- ============================ P.01 — Front page ==================== -->
+  <section class="spread spread--front is-current" data-spread aria-label="Front page">
+    <header class="paper__masthead">
+      <p class="paper__ear">Know what<br>you own</p>
+      <h1 class="paper__title">
+        <img src="{{ url_for('static', filename='images/banqed-logo-dark.png') }}"
+             alt="BANQED" class="paper__title-logo">
+      </h1>
+      <p class="paper__ear paper__ear--right">No. 01<br>Circulation</p>
+    </header>
+ 
+    <div class="paper__columns">
+      <aside class="paper__col paper__col--contents">
+        <p class="paper__kicker">Also inside</p>
+        <ol class="contents">
+          <li><span class="contents__title">What is Banqed?</span><span class="contents__page">Page 02</span></li>
+          <li><span class="contents__title">You own more than you think. You use less than you think.</span><span class="contents__page">Page 03</span></li>
+          <li><span class="contents__title">How many black tops do you own?</span><span class="contents__page">Page 04</span></li>
+          <li><span class="contents__title">The language of banqing</span><span class="contents__page">Page 05</span></li>
+          <li><span class="contents__title">Open your banq account.</span><span class="contents__page">Page 06</span></li>
+        </ol>
+      </aside>
+ 
+      <div class="paper__col paper__col--lead">
+        <p class="paper__kicker">The missing number</p>
+        <h2 class="paper__headline">Do you know what your wardrobe is worth?</h2>
+        <hr class="paper__rule">
+        <p class="paper__standfirst">
+          Most people can name what they bought recently. Far fewer can say what
+          they already own, what they actually use, what sits unworn, or what
+          could help pay for something new.
+        </p>
+        <p class="paper__body paper__body--drop">
+          Banqed gives you the system to find out. Reset your wardrobe section by
+          section. Lodge each item once. Then see the patterns: value, use, source,
+          style, resale willingness and sales. It is not about selling everything.
+          It is about knowing what is there before you buy more, sell, donate,
+          repair or wear again.
+        </p>
+      </div>
+ 
+      <aside class="paper__col paper__col--figures">
+        <p class="paper__pull">"Before you buy more, know what you already own."</p>
+ 
+        <p class="paper__kicker">One wardrobe, counted</p>
+        <div class="figures">
+          <div class="figure">
+            <span class="figure__value">{{ '{:,}'.format(items_catalogued) }}</span>
+            <span class="figure__label">Items catalogued</span>
+          </div>
+          <div class="figure">
+            <span class="figure__value">&euro;{{ '{:,.0f}'.format(estimated_value) }}</span>
+            <span class="figure__label">Estimated value</span>
+          </div>
+          <div class="figure">
+            <span class="figure__value">{{ never_worn }}</span>
+            <span class="figure__label">Never worn</span>
+          </div>
+          <div class="figure">
+            <span class="figure__value">&euro;{{ '{:,.0f}'.format(ready_to_resell) }}</span>
+            <span class="figure__label">Ready to resell</span>
+          </div>
+        </div>
+        <p class="figures__note">Counted live from this banq.</p>
+ 
+        <p class="paper__kicker">Use resale apps better</p>
+        <p class="paper__body"><strong>Resale apps handle the sale. Banqed helps before and after.</strong></p>
+        <p class="paper__body"><strong>Before:</strong> see what you rarely use, what you own in multiples, and what may be worth selling.</p>
+        <p class="paper__body"><strong>After:</strong> track what sold, what you earned, and what you could still earn.</p>
+      </aside>
+    </div>
+  </section>
+ 
+  <!-- ============================ P.02 — How it works ================== -->
+  <section class="spread" data-spread hidden aria-label="How it works">
+    <header class="spread__head">
+      <span class="spread__mark"><img src="{{ url_for('static', filename='images/banqed-logo-dark.png') }}" alt="BANQED" class="spread__mark-logo"></span>
+      <span class="spread__folio">P.02</span>
+      <span class="spread__continued">Continued from the front page</span>
+    </header>
+ 
+    <p class="paper__kicker">How it works</p>
+    <h2 class="paper__headline paper__headline--wide">
+      Businesses know what they own, what it's worth, and what they should sell.
+      Banqed gives you the same, for your wardrobe.
+    </h2>
+ 
+    <ol class="steps">
+      <li class="step">
+        <span class="step__number">01</span>
+        <span class="step__name">Open your banq account</span>
+        <p class="step__body">Go through your wardrobe one section at a time and lodge each piece: its value, how often you wear it, where it came from.</p>
+      </li>
+      <li class="step">
+        <span class="step__number">02</span>
+        <span class="step__name">Understand</span>
+        <p class="step__body">The system reads what you've lodged and shows you the patterns: what you actually wear, what sits unused, what's worth selling. This is the banq account you always owned but could never see the value of.</p>
+      </li>
+      <li class="step">
+        <span class="step__number">03</span>
+        <span class="step__name">Resell</span>
+        <p class="step__body">Now you can decide what's worth keeping. Move anything you're done with into the sales pipeline, list it, sell it, and track what you make.</p>
+      </li>
+    </ol>
+  </section>
+ 
+  <!-- ============================ P.03 — Before / After ================ -->
+  <section class="spread" data-spread hidden aria-label="Before and after">
+    <header class="spread__head">
+      <span class="spread__mark"><img src="{{ url_for('static', filename='images/banqed-logo-dark.png') }}" alt="BANQED" class="spread__mark-logo"></span>
+      <span class="spread__folio">P.03</span>
+      <span class="spread__continued">You own more than you think</span>
+    </header>
+ 
+    <div class="beforeafter">
+      <div class="beforeafter__side">
+        <p class="paper__kicker">Before</p>
+        <p class="beforeafter__line">You know that you own clothes.</p>
+        <p class="beforeafter__line">No clear value.</p>
+        <p class="beforeafter__line">No clear sense of what you use.</p>
+      </div>
+ 
+      <div class="beforeafter__side beforeafter__side--after">
+        <p class="paper__kicker">After</p>
+        <p class="beforeafter__line">
+          <strong>{{ '{:,}'.format(items_catalogued) }} items.</strong>
+          Worth <strong>&euro;{{ '{:,.0f}'.format(estimated_value) }}</strong>.
+        </p>
+        <p class="beforeafter__line">
+          <strong>{{ never_worn }}</strong> of them never worn.
+        </p>
+        <p class="beforeafter__line">
+          <strong>&euro;{{ '{:,.0f}'.format(ready_to_resell) }}</strong> you're willing to sell.
+        </p>
+      </div>
+    </div>
+ 
+    <p class="paper__pull paper__pull--centre">
+      First you find out what you own. Then you decide how you want to own it.
+    </p>
+  </section>
+ 
+  <!-- ============================ P.04 — A single decision ============= -->
+  <section class="spread spread--dark spread--plate" data-spread hidden aria-label="A single decision">
+    <img src="{{ url_for('static', filename='images/page-decision.png') }}"
+         alt="A single decision: you own 880 items, 142 are tops, the dominant colour is black. A black t-shirt. Now you can decide — this is what informed ownership looks like."
+         class="spread__plate">
+  </section>
+ 
+  <!-- ============================ P.05 — The language ================== -->
+  <section class="spread" data-spread hidden aria-label="The language of banqing">
+    <header class="spread__head">
+      <span class="spread__mark"><img src="{{ url_for('static', filename='images/banqed-logo-dark.png') }}" alt="BANQED" class="spread__mark-logo"></span>
+      <span class="spread__folio">P.05</span>
+      <span class="spread__continued">Circulation</span>
+    </header>
+ 
+    <div class="glossary">
+      <dl class="glossary__col">
+        <dt>banq<span class="glossary__pos">n.</span></dt>
+        <dd>A personal record of owned items, organised by value, use, source and resale willingness. Takes the category as a prefix. <em>Ex. wardrobe banq, book banq.</em></dd>
+ 
+        <dt>banqed<span class="glossary__pos">adj.</span></dt>
+        <dd>Counted, valued and made visible. <em>Ex. a banqed wardrobe.</em></dd>
+ 
+        <dt>banqer<span class="glossary__pos">n.</span></dt>
+        <dd>Someone who knows what they own, knows what it's worth, and acts on it.</dd>
+      </dl>
+ 
+      <dl class="glossary__col">
+        <dt>banqing<span class="glossary__pos">v.</span></dt>
+        <dd>Opening a banq, understanding what you own, and circulating it back into use.</dd>
+ 
+        <dt>circulation<span class="glossary__pos">n.</span></dt>
+        <dd>The movement of belongings back into use through wearing, repairing, lending, donating, selling or renting.</dd>
+ 
+        <dt>dormant value<span class="glossary__pos">n.</span></dt>
+        <dd>Value held in items that are owned but rarely or never used.</dd>
+      </dl>
+ 
+      <dl class="glossary__col">
+        <dt>lodgement<span class="glossary__pos">n.</span></dt>
+        <dd>An item added to a banq, with its details recorded: source, value, use, rating and resale willingness.</dd>
+ 
+        <dt>resale willingness<span class="glossary__pos">n.</span></dt>
+        <dd>A personal measure of how open the owner is to selling an item. <em>Scale: keep; keep for now; maybe sell; sell if price is right; sell now.</em></dd>
+ 
+        <dt>listed value<span class="glossary__pos">n.</span></dt>
+        <dd>The combined value of items currently listed for sale.</dd>
+      </dl>
+    </div>
+  </section>
+ 
+  <!-- ============================ P.06 — The crossword ================= -->
+  <section class="spread spread--plate spread--end" data-spread hidden aria-label="The crossword — get banqing">
+    <img src="{{ url_for('static', filename='images/page-crossword.png') }}"
+         alt="The Banqed crossword. Across: get banqing; what you say to the jumper you forgot you owned; what you think when you see how much you have banqed; what grows when sales are recorded."
+         class="spread__plate">
+    <p class="plate__action">
+      <a href="{{ url_for('opening_your_banq') }}" class="ending__action ending__action--primary">Open your banq account</a>
+    </p>
+  </section>
+ 
+  <!-- ============================ Controls ============================= -->
+  <nav class="paper__nav" aria-label="Newspaper pages">
+    <button type="button" class="paper__arrow" data-paper-prev aria-label="Previous page" disabled>&larr;</button>
+    <ol class="paper__dots" data-paper-dots></ol>
+    <button type="button" class="paper__arrow" data-paper-next aria-label="Next page">&rarr;</button>
+  </nav>
+ 
+  <p class="paper__hint" data-paper-hint>Click anywhere to turn the page</p>
+</div>
+{% endblock %}

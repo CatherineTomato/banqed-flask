@@ -10,7 +10,7 @@
  
   mode   = 'single' | 'multi'
   closed = True for fixed scales (wear frequency, resale willingness,
-           item rating), which have no add-new at all.
+           item rating), which offer no add-new at all.
 #}
 {% macro dropdown_field(field, label, mode='single', closed=False) %}
 <div class="lodge-field">
@@ -46,7 +46,8 @@
 {# v7 — fix null Done-button crash on single fields, fix outside-click capture-phase race that closed multi-selects on every pick #}
 {% set just_added = request.args.get('added') %}
 <div class="lodge-success-overlay" id="lodgeSuccessOverlay">
-  <div class="lodge-success-overlay__mark">BANQED</div>
+  <img class="lodge-success-overlay__mark" alt="BANQED"
+       src="{{ url_for('static', filename='images/banqed-logo.png') }}">
 </div>
  
 <div class="lodge-page">
@@ -311,7 +312,7 @@
     }
   }
  
-  // ------------------------------- open / close
+  // ------------------------------------------------------------ open / close
  
   function openField(field) {
     closeAllPanels();
