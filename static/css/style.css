@@ -2161,3 +2161,20 @@ body.paper-fullscreen nav {
     padding: 12px 12px 0;
   }
 }
+
+/* Coming-soon note at the foot of the guide */
+.coming-soon {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--ink-55);
+}
+ 
+.coming-soon strong {
+  color: var(--ink);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  margin-right: 8px;
+}
