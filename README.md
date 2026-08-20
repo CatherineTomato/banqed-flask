@@ -101,6 +101,18 @@ The SQLite database (instance/banqed.db) is included in the repository and conta
 
 ---
 
+## Deploying to Render
+
+1. Sign in at render.com and click New → Web Service.
+2. Connect the GitHub repository (CatherineTomato/banqed-flask), branch `main`.
+3. Set the build command: `pip install -r requirements.txt`
+4. Set the start command: `gunicorn app:app`
+5. Choose the free instance type and click Create Web Service.
+6. Render installs dependencies, starts the app, and serves it at the
+   generated URL. Pushes to `main` trigger automatic redeploys.
+
+---
+
 ## Accessing the hosted application
 
 **URL:** https://banqed-flask.onrender.com
