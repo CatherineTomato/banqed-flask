@@ -2073,9 +2073,27 @@ nav a.is-current {
     border-top: 0;
   }
  
-  .paper__hint {
-    bottom: calc(84px + env(safe-area-inset-bottom, 0px));
+     .paper__nav {
+    display: none;
   }
+
+  .paper__hint {
+    display: none;
+  }
+}
+
+.paper__turn {
+  display: inline-block;
+  margin-top: 24px;
+  padding: 12px 22px;
+  background: var(--ink);
+  color: var(--cream);
+  border: 0;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
 }
 
 /* ==========================================================================

@@ -106,6 +106,13 @@
       event.stopPropagation();
       turn(-1);
     });
+
+    paper.querySelectorAll("[data-paper-turn]").forEach(function (button) {
+      button.addEventListener("click", function (event) {
+        event.stopPropagation();
+        turn(1);
+      });
+    });
  
     // Clicking the page turns it, but not when the click was meant for
     // something else: a link, a button, or text the reader is selecting.
