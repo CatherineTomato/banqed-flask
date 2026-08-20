@@ -1858,7 +1858,7 @@ tr.is-leaving {
 .paper__nav {
   position: fixed;
   left: 50%;
-  bottom: 26px;
+  bottom: calc(26px + env(safe-area-inset-bottom, 0px));
   transform: translateX(-50%);
   z-index: 20;
   display: flex;
@@ -2074,7 +2074,7 @@ nav a.is-current {
   }
  
   .paper__hint {
-    display: none;
+    bottom: calc(84px + env(safe-area-inset-bottom, 0px));
   }
 }
 
