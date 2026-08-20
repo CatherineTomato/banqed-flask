@@ -495,6 +495,12 @@ input[type="number"]::-webkit-inner-spin-button {
 .dropdown__option:hover {
   background: var(--paper);
 }
+
+.dropdown__option.is-active {
+  background: var(--paper);
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+}
  
 .dropdown__option.is-selected {
   background: var(--ink);

@@ -37,6 +37,7 @@
       ? (config.value || []).slice()
       : (config.value || "");
     let query = "";
+    let activeIndex = -1; // which option the arrow keys are pointing at
  
     host.classList.add("dropdown");
     host.innerHTML = "";
@@ -126,10 +127,11 @@
         return;
       }
  
-      matches.forEach(function (option) {
+      matches.forEach(function (option, index) {
         const isOn = multi ? selected.includes(option) : selected === option;
         const row = document.createElement("div");
         row.className = "dropdown__option" + (isOn ? " is-selected" : "");
+        if (index === activeIndex) row.classList.add("is-active");
         row.setAttribute("role", "option");
         row.setAttribute("aria-selected", isOn ? "true" : "false");
         row.textContent = option;
@@ -175,6 +177,7 @@
     function open() {
       closeAll();
       query = "";
+      activeIndex = -1;
       input.readOnly = false;
       input.value = "";
       input.placeholder = searchPlaceholder;
@@ -200,20 +203,47 @@
  
     input.addEventListener("input", function () {
       query = input.value;
+      activeIndex = -1; // the match list changed, so the old highlight is stale
       renderOptions();
     });
  
     input.addEventListener("keydown", function (event) {
+      // Closed menu: Enter, Space or ArrowDown opens it from the keyboard.
+      if (panel.hidden) {
+        if (event.key === "Enter" || event.key === " " || event.key === "ArrowDown") {
+          event.preventDefault();
+          open();
+        }
+        return;
+      }
+
+      // Open menu: arrows move the highlight, Enter picks it, Escape closes,
+      // Tab closes and lets focus move on to the next field.
+      const optionRows = list.querySelectorAll(".dropdown__option");
+
       if (event.key === "Escape") {
         event.preventDefault();
         close();
-        return;
+      } else if (event.key === "Tab") {
+        close();
+      } else if (event.key === "ArrowDown") {
+        event.preventDefault();
+        activeIndex = Math.min(activeIndex + 1, optionRows.length - 1);
+        renderOptions();
+        const active = list.querySelector(".is-active");
+        if (active) active.scrollIntoView({ block: "nearest" });
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        activeIndex = Math.max(activeIndex - 1, 0);
+        renderOptions();
+        const active = list.querySelector(".is-active");
+        if (active) active.scrollIntoView({ block: "nearest" });
+      } else if (event.key === "Enter") {
+        event.preventDefault();
+        const target = optionRows[activeIndex] || optionRows[0];
+        if (target) pick(target.textContent);
+        else if (allowAdd && query.trim()) addValue(query.trim());
       }
-      if (event.key !== "Enter") return;
-      event.preventDefault();
-      const first = list.querySelector(".dropdown__option");
-      if (first) pick(first.textContent);
-      else if (allowAdd && query.trim()) addValue(query.trim());
     });
  
     renderValue();

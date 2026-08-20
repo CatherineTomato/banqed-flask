@@ -232,13 +232,14 @@
       return;
     }
  
-    matches.forEach(function (option) {
+    matches.forEach(function (option, index) {
       const selected = isMulti(field)
         ? s.selected.includes(option)
         : s.selected === option;
- 
+
       const row = document.createElement("div");
       row.className = "dropdown__option" + (selected ? " is-selected" : "");
+      if (index === s.activeIndex) row.classList.add("is-active");
       row.setAttribute("role", "option");
       row.setAttribute("aria-selected", selected ? "true" : "false");
       row.textContent = option;
@@ -320,6 +321,7 @@
     const s = state[field];
     const input = dom.input(field);
     s.query = "";
+    s.activeIndex = -1;
     input.readOnly = false;
     input.value = "";
     input.placeholder = input.dataset.searchPlaceholder;
@@ -446,7 +448,8 @@
     state[field] = {
       selected: isMulti(field) ? [] : "",
       options: (FIELD_OPTIONS[field] || []).slice(),
-      query: ""
+      query: "",
+      activeIndex: -1 // which option the arrow keys are pointing at
     };
     syncFormValue(field);
     renderClosedValue(field);
@@ -464,23 +467,51 @@
  
     input.addEventListener("input", function () {
       state[field].query = input.value;
+      state[field].activeIndex = -1; // the match list changed, so the old highlight is stale
       renderOptions(field);
     });
  
     input.addEventListener("keydown", function (event) {
+      const s = state[field];
+
+      // Closed menu: Enter, Space or ArrowDown opens it from the keyboard.
+      if (dom.panel(field).hidden) {
+        if (event.key === "Enter" || event.key === " " || event.key === "ArrowDown") {
+          event.preventDefault();
+          openField(field);
+        }
+        return;
+      }
+
+      // Open menu: arrows move the highlight, Enter picks it, Escape closes,
+      // Tab closes and lets focus move on to the next field.
+      const optionRows = dom.options(field).querySelectorAll(".dropdown__option");
+
       if (event.key === "Escape") {
         event.preventDefault();
         closeField(field);
-        return;
-      }
-      if (event.key !== "Enter") return;
- 
-      event.preventDefault();
-      const first = dom.options(field).querySelector(".dropdown__option");
-      if (first) {
-        toggleOption(field, first.textContent);
-      } else if (!CLOSED_FIELDS.has(field)) {
-        addNewValue(field, state[field].query);
+      } else if (event.key === "Tab") {
+        closeField(field);
+      } else if (event.key === "ArrowDown") {
+        event.preventDefault();
+        s.activeIndex = Math.min(s.activeIndex + 1, optionRows.length - 1);
+        renderOptions(field);
+        const active = dom.options(field).querySelector(".is-active");
+        if (active) active.scrollIntoView({ block: "nearest" });
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        s.activeIndex = Math.max(s.activeIndex - 1, 0);
+        renderOptions(field);
+        const active = dom.options(field).querySelector(".is-active");
+        if (active) active.scrollIntoView({ block: "nearest" });
+      } else if (event.key === "Enter") {
+        event.preventDefault();
+        const target = optionRows[s.activeIndex] || optionRows[0];
+        if (target) {
+          toggleOption(field, target.textContent);
+        } else if (!CLOSED_FIELDS.has(field)) {
+          addNewValue(field, s.query);
+        }
       }
     });
  
