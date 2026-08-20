@@ -8,7 +8,7 @@ SALES_RESALE = ["Sell now", "Sell if price is right"]
 WARDROBE_RESALE = ["Keep", "Keep for now", "Maybe sell"]
  
 # Sale statuses meaning the item is finished with; hidden on Sales by default.
-SOLD_STATUSES = ["Sold", "Money received"]
+SOLD_STATUSES = ["Sold", "Posted", "Money received"]
  
 SALE_STATUSES = [
     "To prep", "Washing", "Photographed", "Listed",
