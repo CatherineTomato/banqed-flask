@@ -22,6 +22,31 @@ BANQED gives individuals the asset management infrastructure that businesses tak
 
 ---
 
+## Design inspiration
+
+The visual identity of BANQED is drawn from mid-century print and packaging
+design. The colour palette is inspired by the colours in a pint of Guinness.
+
+![Design mood board](docs/design-moodboard.png)
+
+This inspiration is carried directly into the CSS:
+
+- **Palette** — the whole site runs on a small set of CSS custom properties
+  (`--paper`, `--ink`, `--cream`, `--border`) taken from the aged-paper-and-ink
+  tones of the reference material.
+- **Typography** — a Times-based serif for the newspaper front page, with
+  uppercase letterspaced sans-serif labels everywhere else, echoing ledgers
+  and vintage packaging.
+- **Layout** — hairline rules and borders instead of boxes and drop shadows,
+  the way a printed page divides itself.
+- **The home page is a newspaper** you turn page by page, rather than a
+  scrolling landing page.
+
+The mood board is a collage of found reference images collected during the
+design phase; all rights remain with their original owners of course!
+
+---
+
 ## Technical overview
 
 | Layer | Detail |
