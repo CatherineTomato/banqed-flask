@@ -48,9 +48,10 @@
     <div class="page__title">
       <h1>Sales</h1>
       <dl class="page__ledger">
-        <div><dt><strong data-count>{{ items|length }}</strong> items showing</dt><dd data-total-value>&euro;{{ '{:,.0f}'.format(items|sum(attribute='estimated_value') or 0) }}</dd></div>
-        <div><dt>Revenue to date</dt><dd data-revenue>&euro;{{ '{:,.0f}'.format(revenue) }}</dd></div>
-        <div><dt>Total value of listed items</dt><dd data-listed-value>&euro;{{ '{:,.0f}'.format(listed_value) }}</dd></div>
+        <div><dt>Items in the pipeline</dt><dd><span data-count>{{ item_count }}</span></dd></div>
+        <div><dt>Value not yet listed</dt><dd>&euro;{{ '{:,.0f}'.format(not_listed_value) }}</dd></div>
+        <div><dt>Value listed for sale</dt><dd>&euro;{{ '{:,.0f}'.format(listed_value) }}</dd></div>
+        <div><dt>Revenue to date</dt><dd>&euro;{{ '{:,.0f}'.format(revenue) }}</dd></div>
       </dl>
     </div>
  

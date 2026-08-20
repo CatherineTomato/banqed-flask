@@ -183,7 +183,12 @@ def wardrobe():
  
 @app.route("/sales")
 def sales():
-    """Items marked for resale, with their sale progress."""
+    """Items marked for resale, with their sale progress.
+ 
+    The headline figures follow the pipeline: how many items are here, the
+    value still being prepared, the value actually listed, and what has been
+    earned so far.
+    """
     items = (
         Item.query
         .filter(Item.resale_willingness.in_(SALES_RESALE))
@@ -191,19 +196,23 @@ def sales():
         .all()
     )
  
+    def price(item):
+        return item.listing_price if item.listing_price is not None else (item.estimated_value or 0)
+ 
     revenue = sum(i.sold_for or 0 for i in items if i.is_sold)
-    listed_value = sum(i.listing_price or 0 for i in items if not i.is_sold)
-    rarely_worn_value = sum(
-        i.estimated_value or 0 for i in items
-        if i.wear_frequency in ("Rarely", "Never worn")
+    listed_value = sum(price(i) for i in items if i.sale_status == "Listed")
+    not_listed_value = sum(
+        price(i) for i in items
+        if not i.is_sold and i.sale_status != "Listed"
     )
  
     return render_template(
         "sales.html",
         items=items,
-        revenue=revenue,
+        item_count=len(items),
+        not_listed_value=not_listed_value,
         listed_value=listed_value,
-        rarely_worn_value=rarely_worn_value,
+        revenue=revenue,
         field_options=build_field_options(),
         item_types=item_type_options(),
         sale_statuses=SALE_STATUSES,
@@ -378,3 +387,4 @@ with app.app_context():
  
 if __name__ == "__main__":
     app.run(debug=True)
+ 
